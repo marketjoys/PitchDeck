@@ -136,7 +136,7 @@ class PerplexityService:
             return PerplexityResponse(
                 content=content,
                 citations=citations,
-                model=result.get("model", "llama-3.1-sonar-small-128k-online"),
+                model=result.get("model", "sonar"),
                 usage=result.get("usage", {})
             )
         except Exception as e:
