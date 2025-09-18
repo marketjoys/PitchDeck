@@ -506,7 +506,7 @@ const SlideEditor = () => {
 
       {/* Research Panel */}
       <Sheet open={researchPanel} onOpenChange={setResearchPanel}>
-        <SheetContent className="w-[500px] sm:w-[540px]">
+        <SheetContent className="w-[500px] sm:w-[540px] z-[60]">
           <SheetHeader>
             <SheetTitle className="flex items-center">
               <Brain className="w-5 h-5 mr-2" />
