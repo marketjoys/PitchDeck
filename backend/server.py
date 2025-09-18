@@ -82,7 +82,7 @@ class PerplexityResponse(BaseModel):
     content: str
     citations: List[Dict[str, str]] = Field(default_factory=list)
     model: str = "sonar"
-    usage: Dict[str, int] = Field(default_factory=dict)
+    usage: Dict[str, Any] = Field(default_factory=dict)
 
 # Perplexity Service
 class PerplexityService:
