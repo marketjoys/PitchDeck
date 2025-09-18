@@ -104,7 +104,7 @@ class PerplexityService:
         messages.append({"role": "user", "content": query})
         
         data = {
-            "model": "llama-3.1-sonar-small-128k-online",
+            "model": "sonar",
             "messages": messages,
             "temperature": 0.3,
             "max_tokens": max_tokens
