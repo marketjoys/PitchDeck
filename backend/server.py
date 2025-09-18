@@ -104,11 +104,10 @@ class PerplexityService:
         messages.append({"role": "user", "content": query})
         
         data = {
-            "model": "pplx-7b-chat",
+            "model": "llama-3.1-sonar-small-128k-online",
             "messages": messages,
             "temperature": 0.3,
-            "max_tokens": max_tokens,
-            "return_citations": True
+            "max_tokens": max_tokens
         }
         
         try:
