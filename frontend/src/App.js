@@ -1,50 +1,633 @@
-import { useEffect } from "react";
-import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import './App.css';
+import axios from 'axios';
+import { BrowserRouter, Routes, Route, Link, useParams, useNavigate } from 'react-router-dom';
+import { Button } from './components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
+import { Input } from './components/ui/input';
+import { Textarea } from './components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
+import { Badge } from './components/ui/badge';
+import { Separator } from './components/ui/separator';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from './components/ui/sheet';
+import { 
+  Plus, 
+  Search, 
+  Layout, 
+  BarChart3, 
+  Users, 
+  TrendingUp, 
+  FileText, 
+  Download,
+  Lightbulb,
+  Palette,
+  Type,
+  Image as ImageIcon,
+  Zap,
+  Brain,
+  Target
+} from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
+// Main Dashboard Component
+const Dashboard = () => {
+  const [decks, setDecks] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [newDeckTitle, setNewDeckTitle] = useState('');
+  const [newDeckDescription, setNewDeckDescription] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchDecks();
+    fetchTemplates();
+  }, []);
+
+  const fetchDecks = async () => {
     try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+      const response = await axios.get(`${API}/decks`);
+      setDecks(response.data);
+    } catch (error) {
+      console.error('Error fetching decks:', error);
     }
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  const fetchTemplates = async () => {
+    try {
+      const response = await axios.get(`${API}/templates`);
+      setTemplates(response.data);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    }
+  };
+
+  const createDeck = async () => {
+    if (!newDeckTitle.trim()) return;
+    
+    try {
+      const response = await axios.post(`${API}/decks`, {
+        title: newDeckTitle,
+        description: newDeckDescription,
+        template_id: selectedTemplate
+      });
+      
+      setDecks([...decks, response.data]);
+      setShowCreateDialog(false);
+      setNewDeckTitle('');
+      setNewDeckDescription('');
+      setSelectedTemplate('');
+      
+      // Navigate to editor
+      navigate(`/editor/${response.data.id}`);
+    } catch (error) {
+      console.error('Error creating deck:', error);
+    }
+  };
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-lg border-b border-slate-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  DeckCraft Pro
+                </h1>
+              </div>
+              <Badge variant="secondary" className="ml-4">AI-Powered Research</Badge>
+            </div>
+            
+            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Deck
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Create New Pitch Deck</DialogTitle>
+                  <DialogDescription>
+                    Choose a template or start with a creative canvas
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <Input
+                    placeholder="Deck title..."
+                    value={newDeckTitle}
+                    onChange={(e) => setNewDeckTitle(e.target.value)}
+                  />
+                  <Textarea
+                    placeholder="Brief description (optional)..."
+                    value={newDeckDescription}
+                    onChange={(e) => setNewDeckDescription(e.target.value)}
+                    rows={3}
+                  />
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Choose Template</label>
+                    {templates.map((template) => (
+                      <Card 
+                        key={template.id}
+                        className={`cursor-pointer transition-all hover:shadow-md ${
+                          selectedTemplate === template.id ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+                        }`}
+                        onClick={() => setSelectedTemplate(template.id)}
+                      >
+                        <CardContent className="p-3">
+                          <h4 className="font-medium">{template.name}</h4>
+                          <p className="text-sm text-slate-600">{template.description}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={createDeck} className="w-full">
+                    Create & Start Editing
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
       </header>
+
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20"></div>
+        <div 
+          className="h-96 bg-cover bg-center relative"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1590098563686-06ab8778a6a7?auto=format&fit=crop&w=1920&q=80')`
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/70 to-slate-900/50"></div>
+          <div className="relative z-10 max-w-7xl mx-auto px-6 py-20">
+            <div className="text-center text-white">
+              <h2 className="text-4xl md:text-6xl font-bold mb-6">
+                Build Investor-Ready
+                <span className="block bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  Pitch Decks
+                </span>
+              </h2>
+              <p className="text-xl md:text-2xl text-slate-200 mb-8 max-w-3xl mx-auto">
+                AI-powered research meets creative design. Create compelling pitch decks with real-time market data and professional templates.
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <Button 
+                  size="lg" 
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  onClick={() => setShowCreateDialog(true)}
+                >
+                  <Lightbulb className="w-5 h-5 mr-2" />
+                  Start Creating
+                </Button>
+                <Button size="lg" variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                  <Brain className="w-5 h-5 mr-2" />
+                  Explore AI Research
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="py-20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h3 className="text-3xl font-bold mb-4">Powerful Features for Perfect Pitches</h3>
+            <p className="text-xl text-slate-600">Everything you need to create compelling, data-driven presentations</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader>
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mb-4">
+                  <Brain className="w-6 h-6 text-white" />
+                </div>
+                <CardTitle>AI Research Assistant</CardTitle>
+                <CardDescription>
+                  Real-time market research, competitive analysis, and industry insights powered by Perplexity AI
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader>
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
+                  <Palette className="w-6 h-6 text-white" />
+                </div>
+                <CardTitle>Creative Canvas</CardTitle>
+                <CardDescription>
+                  Drag-and-drop editor with professional templates and unlimited customization options
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader>
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mb-4">
+                  <TrendingUp className="w-6 h-6 text-white" />
+                </div>
+                <CardTitle>Market Intelligence</CardTitle>
+                <CardDescription>
+                  Live market data, growth projections, and competitive benchmarking with citations
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader>
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mb-4">
+                  <Target className="w-6 h-6 text-white" />
+                </div>
+                <CardTitle>Investor-Tested Templates</CardTitle>
+                <CardDescription>
+                  15+ proven templates optimized for different industries and funding stages
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader>
+                <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center mb-4">
+                  <Download className="w-6 h-6 text-white" />
+                </div>
+                <CardTitle>Multi-Format Export</CardTitle>
+                <CardDescription>
+                  Export to PDF, PowerPoint, HTML5, and video formats for any presentation scenario
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <CardHeader>
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center mb-4">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <CardTitle>Team Collaboration</CardTitle>
+                <CardDescription>
+                  Real-time editing, comments, and feedback system for seamless team collaboration
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Your Decks Section */}
+      {decks.length > 0 && (
+        <section className="py-20 px-6 bg-white/50">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-3xl font-bold">Your Pitch Decks</h3>
+              <Button 
+                variant="outline"
+                onClick={() => setShowCreateDialog(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                New Deck
+              </Button>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {decks.map((deck) => (
+                <Card key={deck.id} className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle className="group-hover:text-blue-600 transition-colors">
+                          {deck.title}
+                        </CardTitle>
+                        <CardDescription className="mt-2">
+                          {deck.description || "No description"}
+                        </CardDescription>
+                      </div>
+                      <Badge variant="secondary">{deck.slides?.length || 0} slides</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-slate-500">
+                        Updated {new Date(deck.updated_at).toLocaleDateString()}
+                      </p>
+                      <Button 
+                        size="sm"
+                        onClick={() => navigate(`/editor/${deck.id}`)}
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 };
 
+// Slide Editor Component
+const SlideEditor = () => {
+  const { deckId } = useParams();
+  const [deck, setDeck] = useState(null);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [researchPanel, setResearchPanel] = useState(false);
+  const [researchQuery, setResearchQuery] = useState('');
+  const [researchResults, setResearchResults] = useState(null);
+  const [researchLoading, setResearchLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchDeck();
+  }, [deckId]);
+
+  const fetchDeck = async () => {
+    try {
+      const response = await axios.get(`${API}/decks/${deckId}`);
+      setDeck(response.data);
+    } catch (error) {
+      console.error('Error fetching deck:', error);
+    }
+  };
+
+  const updateSlide = async (slideId, updates) => {
+    try {
+      await axios.put(`${API}/decks/${deckId}/slides/${slideId}`, updates);
+      // Update local state
+      setDeck(prev => ({
+        ...prev,
+        slides: prev.slides.map(slide => 
+          slide.id === slideId ? { ...slide, ...updates } : slide
+        )
+      }));
+    } catch (error) {
+      console.error('Error updating slide:', error);
+    }
+  };
+
+  const conductResearch = async (type = 'market_analysis') => {
+    if (!researchQuery.trim()) return;
+    
+    setResearchLoading(true);
+    try {
+      const response = await axios.post(`${API}/research/${type}`, {
+        query: researchQuery,
+        industry: "technology", // You can make this dynamic
+        max_tokens: 2000
+      });
+      setResearchResults(response.data);
+    } catch (error) {
+      console.error('Error conducting research:', error);
+    } finally {
+      setResearchLoading(false);
+    }
+  };
+
+  if (!deck) return <div className="flex items-center justify-center h-screen">Loading...</div>;
+
+  const currentSlide = deck.slides[currentSlideIndex];
+
+  return (
+    <div className="h-screen flex bg-slate-50">
+      {/* Sidebar - Slide Navigation */}
+      <div className="w-64 bg-white border-r border-slate-200 flex flex-col">
+        <div className="p-4 border-b">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/')}
+            className="w-full justify-start"
+          >
+            ← Back to Dashboard
+          </Button>
+          <h2 className="font-semibold mt-4 truncate">{deck.title}</h2>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-2">
+          <div className="space-y-2">
+            {deck.slides.map((slide, index) => (
+              <Card 
+                key={slide.id}
+                className={`cursor-pointer transition-all hover:shadow-md ${
+                  index === currentSlideIndex ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+                }`}
+                onClick={() => setCurrentSlideIndex(index)}
+              >
+                <CardContent className="p-3">
+                  <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 rounded mb-2 flex items-center justify-center">
+                    <Layout className="w-6 h-6 text-slate-400" />
+                  </div>
+                  <p className="text-sm font-medium truncate">{slide.title}</p>
+                  <p className="text-xs text-slate-500">Slide {index + 1}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+        
+        <div className="p-4 border-t">
+          <Button 
+            className="w-full mb-2"
+            onClick={() => setResearchPanel(true)}
+          >
+            <Brain className="w-4 h-4 mr-2" />
+            AI Research
+          </Button>
+          <Button variant="outline" className="w-full">
+            <Download className="w-4 h-4 mr-2" />
+            Export Deck
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Editor */}
+      <div className="flex-1 flex flex-col">
+        {/* Toolbar */}
+        <div className="bg-white border-b border-slate-200 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <h3 className="font-semibold">Slide {currentSlideIndex + 1}: {currentSlide?.title}</h3>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm">
+                <Type className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" size="sm">
+                <ImageIcon className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" size="sm">
+                <BarChart3 className="w-4 h-4" />
+              </Button>
+              <Separator orientation="vertical" className="h-6" />
+              <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Canvas Area */}
+        <div className="flex-1 p-8 overflow-auto">
+          <div className="max-w-4xl mx-auto">
+            <Card className="aspect-video bg-white shadow-lg">
+              <CardContent className="p-8 h-full">
+                <div className="h-full flex flex-col">
+                  <Input
+                    value={currentSlide?.title || ''}
+                    onChange={(e) => updateSlide(currentSlide.id, { title: e.target.value })}
+                    className="text-2xl font-bold border-0 p-0 mb-6 bg-transparent"
+                    placeholder="Slide title..."
+                  />
+                  <Textarea
+                    value={currentSlide?.content || ''}
+                    onChange={(e) => updateSlide(currentSlide.id, { content: e.target.value })}
+                    className="flex-1 border-0 p-0 resize-none bg-transparent text-lg"
+                    placeholder="Add your content here..."
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* Research Panel */}
+      <Sheet open={researchPanel} onOpenChange={setResearchPanel}>
+        <SheetContent className="w-[500px] sm:w-[540px]">
+          <SheetHeader>
+            <SheetTitle className="flex items-center">
+              <Brain className="w-5 h-5 mr-2" />
+              AI Research Assistant
+            </SheetTitle>
+            <SheetDescription>
+              Get real-time market research, competitive analysis, and content suggestions
+            </SheetDescription>
+          </SheetHeader>
+          
+          <div className="mt-6 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Research Query</label>
+              <Textarea
+                placeholder="e.g., AI market size and growth trends, competitive analysis for SaaS startups..."
+                value={researchQuery}
+                onChange={(e) => setResearchQuery(e.target.value)}
+                rows={3}
+              />
+            </div>
+            
+            <Tabs defaultValue="market" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="market">Market</TabsTrigger>
+                <TabsTrigger value="competition">Competition</TabsTrigger>
+                <TabsTrigger value="content">Content</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="market" className="space-y-3">
+                <Button 
+                  className="w-full" 
+                  onClick={() => conductResearch('market-analysis')}
+                  disabled={researchLoading}
+                >
+                  {researchLoading ? 'Researching...' : 'Analyze Market'}
+                </Button>
+              </TabsContent>
+              
+              <TabsContent value="competition" className="space-y-3">
+                <Button 
+                  className="w-full" 
+                  onClick={() => conductResearch('competitive-analysis')}
+                  disabled={researchLoading}
+                >
+                  {researchLoading ? 'Analyzing...' : 'Analyze Competition'}
+                </Button>
+              </TabsContent>
+              
+              <TabsContent value="content" className="space-y-3">
+                <Button 
+                  className="w-full" 
+                  onClick={() => conductResearch('content-generation')}
+                  disabled={researchLoading}
+                >
+                  {researchLoading ? 'Generating...' : 'Generate Content'}
+                </Button>
+              </TabsContent>
+            </Tabs>
+
+            {/* Research Results */}
+            {researchResults && (
+              <div className="mt-6 space-y-4">
+                <Separator />
+                <div>
+                  <h4 className="font-semibold mb-3">Research Results</h4>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="prose prose-sm max-w-none">
+                        <p className="whitespace-pre-wrap text-sm">
+                          {researchResults.data.content}
+                        </p>
+                      </div>
+                      
+                      {researchResults.data.citations.length > 0 && (
+                        <div className="mt-4 pt-4 border-t">
+                          <p className="text-sm font-medium mb-2">Sources:</p>
+                          <div className="space-y-2">
+                            {researchResults.data.citations.map((citation, index) => (
+                              <div key={index} className="text-xs">
+                                <a href={citation.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                  {citation.title}
+                                </a>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <Button 
+                        size="sm" 
+                        className="mt-4 w-full"
+                        onClick={() => {
+                          if (currentSlide) {
+                            updateSlide(currentSlide.id, { 
+                              content: currentSlide.content + '\n\n' + researchResults.data.content 
+                            });
+                          }
+                        }}
+                      >
+                        Add to Slide
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
+};
+
+// Main App Component
 function App() {
   return (
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/editor/:deckId" element={<SlideEditor />} />
         </Routes>
       </BrowserRouter>
     </div>
