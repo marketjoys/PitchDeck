@@ -447,7 +447,12 @@ def main():
         tester.test_update_slide,
         tester.test_market_research,
         tester.test_competitive_analysis,
-        tester.test_content_generation
+        tester.test_content_generation,
+        tester.test_get_stock_images,
+        tester.test_get_stock_images_by_category,
+        tester.test_image_upload,
+        tester.test_pdf_export,
+        tester.test_enhanced_slide_model
     ]
     
     for test in tests:
