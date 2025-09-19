@@ -306,16 +306,21 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Image Management UI - Stock Images and Upload"
-    - "Enhanced Slide Editor with Images"
-    - "PDF Export Button Integration"
+    - "Google Gemini AI Image Generation Integration" 
+    - "Enhanced Dynamic Font System"
+    - "Citation Removal and Enhanced Research"
+    - "Enhanced Auto-Generation with AI Images"
+    - "Enhanced Font System Integration"
+    - "AI Image Generation UI"
+    - "Enhanced Research UI with Image Prompts"
+    - "Improved Slide Editor Interface"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "Backend completely functional with 14/14 tests passed. All pitch deck functionality implemented: AI research working with new Perplexity key, 10 stock images available, image upload working, PDF export functional, enhanced slide model with image support. Frontend enhanced with comprehensive image management UI and export functionality. Ready for frontend testing."
+    message: "Enhanced DeckCraft Pro with comprehensive improvements: 1) Google Gemini AI image generation with style options, 2) Dynamic font system with topic-appropriate selections and Google Fonts integration, 3) Citation removal while keeping research depth, 4) Enhanced Perplexity integration for contextual image prompts, 5) Improved auto-generation with AI images and better content quality, 6) Enhanced frontend with Font Panel, AI image generation UI, and improved research interface. Backend has 4 new high-priority tasks ready for testing. Frontend has 4 new enhanced features ready for testing. All services restarted successfully."
 
 user_problem_statement: "Test the new auto-generation functionality: Auto-Generation API Testing, Content Quality Testing, Performance Testing with realistic EcoTech Solutions data"
 
