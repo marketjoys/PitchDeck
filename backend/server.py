@@ -489,6 +489,84 @@ async def generate_pitch_content(request: ResearchRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# New Image Generation Endpoint
+@api_router.post("/images/generate")
+async def generate_image(request: ImageGenerationRequest):
+    """Generate AI image using Google Gemini"""
+    try:
+        # Enhance prompt based on style
+        style_enhancements = {
+            "professional": "professional business style, clean composition, corporate aesthetic, high quality",
+            "creative": "creative and artistic style, vibrant colors, innovative composition, modern design",
+            "minimal": "minimal and clean style, white background, simple composition, elegant design",
+            "modern": "modern and sleek style, contemporary aesthetics, sophisticated composition"
+        }
+        
+        enhanced_prompt = f"{request.prompt}, {style_enhancements.get(request.style, style_enhancements['professional'])}"
+        
+        image_url = await gemini_service.generate_image(enhanced_prompt, "ai_generated")
+        
+        return {
+            "success": True,
+            "image_url": image_url,
+            "prompt_used": enhanced_prompt,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Font System Endpoints
+@api_router.get("/fonts/topic/{topic}")
+async def get_topic_fonts(topic: str):
+    """Get font recommendations for a specific topic"""
+    fonts = font_service.get_topic_fonts(topic)
+    return {
+        "topic": topic,
+        "fonts": fonts,
+        "google_fonts_url": f"https://fonts.googleapis.com/css2?family={fonts['primary'].replace(' ', '+')}:wght@300;400;500;600;700&family={fonts['secondary'].replace(' ', '+')}:wght@300;400;500;600;700&family={fonts['accent'].replace(' ', '+')}:wght@300;400;500;600;700&display=swap"
+    }
+
+@api_router.get("/fonts/sizes/{slide_type}")
+async def get_font_sizes(slide_type: str):
+    """Get font sizes for slide elements"""
+    sizes = font_service.get_font_sizes(slide_type)
+    return {
+        "slide_type": slide_type,
+        "sizes": sizes
+    }
+
+# Enhanced Research with Image Prompts
+@api_router.post("/research/enhanced-content")
+async def generate_enhanced_content(request: ResearchRequest):
+    """Generate content with contextual image prompts"""
+    system_prompt = f"""You are a professional pitch deck consultant creating compelling, to-the-point content for {request.research_type}. Generate concise, impactful content that tells a clear story with specific data points and actionable insights. Avoid fluff and focus on key points that matter to investors. Structure content with clear headers and bullet points where appropriate."""
+    
+    try:
+        # Generate main content
+        content_result = await perplexity_service.search(request.query, system_prompt, request.max_tokens)
+        
+        # Generate contextual image prompt
+        image_prompt = await perplexity_service.generate_image_prompt(
+            request.research_type, 
+            content_result.content, 
+            request.industry or "business"
+        )
+        
+        return {
+            "success": True,
+            "research_type": request.research_type,
+            "data": {
+                "content": content_result.content,
+                "image_prompt": image_prompt,
+                "citations": [],  # Citations removed as requested
+                "model": content_result.model,
+                "usage": content_result.usage
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Stock Images Data
 STOCK_IMAGES = [
     {
