@@ -369,6 +369,82 @@ const SlideEditor = () => {
     }
   };
 
+  const fetchStockImages = async () => {
+    try {
+      const response = await axios.get(`${API}/images/stock`);
+      setStockImages(response.data);
+    } catch (error) {
+      console.error('Error fetching stock images:', error);
+    }
+  };
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await axios.post(`${API}/images/upload`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      if (response.data.success) {
+        // Add image to current slide
+        const imageUrl = `${BACKEND_URL}${response.data.image_url}`;
+        updateSlide(currentSlide.id, { 
+          images: [...(currentSlide.images || []), imageUrl]
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const addStockImageToSlide = (imageUrl) => {
+    updateSlide(currentSlide.id, { 
+      images: [...(currentSlide.images || []), imageUrl]
+    });
+  };
+
+  const setSlideBackgroundImage = (imageUrl) => {
+    updateSlide(currentSlide.id, { background_image: imageUrl });
+  };
+
+  const removeImageFromSlide = (imageIndex) => {
+    const updatedImages = currentSlide.images.filter((_, index) => index !== imageIndex);
+    updateSlide(currentSlide.id, { images: updatedImages });
+  };
+
+  const exportToPDF = async () => {
+    setExportLoading(true);
+    try {
+      const response = await axios.post(`${API}/export/pdf/${deckId}`, {}, {
+        responseType: 'blob',
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${deck.title}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   const updateSlide = async (slideId, updates) => {
     try {
       await axios.put(`${API}/decks/${deckId}/slides/${slideId}`, updates);
