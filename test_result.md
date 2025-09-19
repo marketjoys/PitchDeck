@@ -435,15 +435,18 @@ backend:
 
   - task: "Auto-Generation Functionality"
     implemented: true
-    working: true
+    working: false
     file: "backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
         - working: true
           agent: "testing"
           comment: "✅ Auto-generation functionality working perfectly. POST /api/decks/auto-generate successfully created complete pitch deck for EcoTech Solutions with all 9 slides containing AI-generated content (1100-2366 chars each), appropriate background images from stock images, proper slide ordering (0-8), and contextual content mentioning company details. Generation completed in 63.75 seconds. All success criteria met: 9/9 slides with AI content, 9/9 slides with images, 0/9 placeholder slides."
+        - working: false
+          agent: "testing"
+          comment: "❌ Auto-generation now experiencing timeout issues after enhanced features integration. Request times out after 120 seconds. This appears to be related to the enhanced processing pipeline that includes more intensive AI operations. Individual components work but combined processing exceeds timeout limits."
 
 frontend:
   - task: "Frontend Integration Testing"
