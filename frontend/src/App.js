@@ -767,10 +767,20 @@ const SlideEditor = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <h3 className="font-semibold">Slide {currentSlideIndex + 1}: {currentSlide?.title}</h3>
+              {fonts && (
+                <Badge variant="secondary" className="text-xs">
+                  Font: {fonts.primary} • {fonts.character}
+                </Badge>
+              )}
             </div>
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setFontPanel(true)}
+              >
                 <Type className="w-4 h-4" />
+                <span className="ml-1 hidden sm:inline">Fonts</span>
               </Button>
               <Button 
                 variant="outline" 
@@ -778,6 +788,15 @@ const SlideEditor = () => {
                 onClick={() => setImagePanel(true)}
               >
                 <ImageIcon className="w-4 h-4" />
+                <span className="ml-1 hidden sm:inline">Images</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setResearchPanel(true)}
+              >
+                <Brain className="w-4 h-4" />
+                <span className="ml-1 hidden sm:inline">AI Research</span>
               </Button>
               <Button variant="outline" size="sm">
                 <BarChart3 className="w-4 h-4" />
