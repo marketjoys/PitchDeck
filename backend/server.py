@@ -312,6 +312,133 @@ async def generate_pitch_content(request: ResearchRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Stock Images Data
+STOCK_IMAGES = [
+    {
+        "id": "business-presentation-1",
+        "url": "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMHByZXNlbnRhdGlvbnxlbnwwfHx8fDE3NTgyNjQ5Mjh8MA&ixlib=rb-4.1.0&q=85",
+        "title": "Business Presentation",
+        "category": "presentation",
+        "tags": ["business", "presentation", "meeting", "professional"]
+    },
+    {
+        "id": "conference-room-1",
+        "url": "https://images.unsplash.com/photo-1573167507387-6b4b98cb7c13?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHwyfHxidXNpbmVzcyUyMHByZXNlbnRhdGlvbnxlbnwwfHx8fDE3NTgyNjQ5Mjh8MA&ixlib=rb-4.1.0&q=85",
+        "title": "Conference Room Meeting",
+        "category": "team",
+        "tags": ["team", "meeting", "conference", "collaboration"]
+    },
+    {
+        "id": "presentation-screen-1",
+        "url": "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHwzfHxidXNpbmVzcyUyMHByZXNlbnRhdGlvbnxlbnwwfHx8fDE3NTgyNjQ5Mjh8MA&ixlib=rb-4.1.0&q=85",
+        "title": "Large Screen Presentation",
+        "category": "presentation",
+        "tags": ["presentation", "screen", "business", "meeting"]
+    },
+    {
+        "id": "startup-office-1",
+        "url": "https://images.unsplash.com/photo-1591115765373-5207764f72e7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHw0fHxidXNpbmVzcyUyMHByZXNlbnRhdGlvbnxlbnwwfHx8fDE3NTgyNjQ5Mjh8MA&ixlib=rb-4.1.0&q=85",
+        "title": "Startup Office Presentation",
+        "category": "business",
+        "tags": ["startup", "office", "business", "innovation"]
+    },
+    {
+        "id": "modern-conference-1",
+        "url": "https://images.unsplash.com/photo-1606836591695-4d58a73eba1e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMG1lZXRpbmd8ZW58MHx8fHwxNzU4MTg4MDE0fDA&ixlib=rb-4.1.0&q=85",
+        "title": "Modern Conference Room",
+        "category": "professional",
+        "tags": ["modern", "conference", "professional", "business"]
+    },
+    {
+        "id": "team-laptops-1",
+        "url": "https://images.unsplash.com/photo-1709715357520-5e1047a2b691?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwyfHxidXNpbmVzcyUyMG1lZXRpbmd8ZW58MHx8fHwxNzU4MTg4MDE0fDA&ixlib=rb-4.1.0&q=85",
+        "title": "Team Meeting with Laptops",
+        "category": "collaboration",
+        "tags": ["team", "laptops", "collaboration", "work"]
+    },
+    {
+        "id": "business-teamwork-1",
+        "url": "https://images.unsplash.com/photo-1517048676732-d65bc937f952?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHw0fHxidXNpbmVzcyUyMG1lZXRpbmd8ZW58MHx8fHwxNzU4MTg4MDE0fDA&ixlib=rb-4.1.0&q=85",
+        "title": "Business Teamwork",
+        "category": "team",
+        "tags": ["teamwork", "collaboration", "business", "group"]
+    },
+    {
+        "id": "analytics-dashboard-1",
+        "url": "https://images.unsplash.com/photo-1608222351212-18fe0ec7b13b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NjZ8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMGFuYWx5dGljc3xlbnwwfHx8fDE3NTgyMjEzOTZ8MA&ixlib=rb-4.1.0&q=85",
+        "title": "Performance Analytics Dashboard",
+        "category": "analytics",
+        "tags": ["analytics", "dashboard", "data", "performance"]
+    },
+    {
+        "id": "statistics-laptop-1",
+        "url": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NjZ8MHwxfHNlYXJjaHwyfHxidXNpbmVzcyUyMGFuYWx5dGljc3xlbnwwfHx8fDE3NTgyMjEzOTZ8MA&ixlib=rb-4.1.0&q=85",
+        "title": "Statistics on Laptop",
+        "category": "analytics",
+        "tags": ["statistics", "laptop", "data", "analysis"]
+    },
+    {
+        "id": "performance-graphs-1",
+        "url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NjZ8MHwxfHNlYXJjaHw0fHxidXNpbmVzcyUyMGFuYWx5dGljc3xlbnwwfHx8fDE3NTgyMjEzOTZ8MA&ixlib=rb-4.1.0&q=85",
+        "title": "Performance Analytics Graphs",
+        "category": "analytics",
+        "tags": ["graphs", "performance", "analytics", "data"]
+    }
+]
+
+# Image Management
+@api_router.get("/images/stock", response_model=List[StockImage])
+async def get_stock_images(category: Optional[str] = None):
+    """Get available stock images, optionally filtered by category"""
+    images = STOCK_IMAGES
+    if category:
+        images = [img for img in images if img["category"] == category]
+    return [StockImage(**img) for img in images]
+
+@api_router.post("/images/upload", response_model=ImageUploadResponse)
+async def upload_image(file: UploadFile = File(...)):
+    """Upload an image file"""
+    try:
+        # Validate file type
+        if not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+        
+        # Create uploads directory if it doesn't exist
+        upload_dir = Path("/app/backend/uploads")
+        upload_dir.mkdir(exist_ok=True)
+        
+        # Generate unique filename
+        file_id = str(uuid.uuid4())
+        file_extension = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+        filename = f"{file_id}.{file_extension}"
+        file_path = upload_dir / filename
+        
+        # Save file
+        async with aiofiles.open(file_path, 'wb') as f:
+            content = await file.read()
+            await f.write(content)
+        
+        # Return file URL (relative to backend)
+        image_url = f"/api/images/uploads/{filename}"
+        
+        return ImageUploadResponse(
+            success=True,
+            image_url=image_url,
+            image_id=file_id,
+            message="Image uploaded successfully"
+        )
+    except Exception as e:
+        logger.error(f"Error uploading image: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
+
+@api_router.get("/images/uploads/{filename}")
+async def get_uploaded_image(filename: str):
+    """Serve uploaded images"""
+    file_path = Path("/app/backend/uploads") / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Image not found")
+    return FileResponse(file_path)
+
 # Templates
 @api_router.get("/templates")
 async def get_templates():
