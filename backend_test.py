@@ -8,7 +8,7 @@ except ImportError:
     print("Warning: PIL not available, image upload test may fail")
 
 class DeckCraftAPITester:
-    def __init__(self, base_url="https://pitch-readiness.preview.emergentagent.com"):
+    def __init__(self, base_url="https://deck-sync-upgrade.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tests_run = 0
