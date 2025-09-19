@@ -1053,6 +1053,162 @@ class DeckCraftAPITester:
             print(f"❌ Failed - Error: {str(e)}")
             return False
 
+    def test_auto_generate_deck(self):
+        """Test auto-generation functionality with realistic data"""
+        auto_generate_data = {
+            "company_name": "EcoTech Solutions",
+            "industry": "CleanTech",
+            "business_description": "Revolutionary solar energy storage system with AI-powered optimization",
+            "target_audience": "investors",
+            "funding_stage": "series_a",
+            "auto_populate_images": True
+        }
+        
+        print(f"\n🔍 Testing Auto-Generate Deck...")
+        print(f"   Company: {auto_generate_data['company_name']}")
+        print(f"   Industry: {auto_generate_data['industry']}")
+        print(f"   Target: {auto_generate_data['target_audience']}")
+        print(f"   Stage: {auto_generate_data['funding_stage']}")
+        
+        url = f"{self.api_url}/decks/auto-generate"
+        self.tests_run += 1
+        
+        try:
+            start_time = datetime.now()
+            response = requests.post(url, json=auto_generate_data, headers={'Content-Type': 'application/json'}, timeout=120)
+            end_time = datetime.now()
+            generation_time = (end_time - start_time).total_seconds()
+            
+            success = response.status_code == 200
+            
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                print(f"   Generation time: {generation_time:.2f} seconds")
+                
+                response_data = response.json()
+                
+                # Verify deck structure
+                if 'id' in response_data:
+                    print(f"   ✅ Deck created with ID: {response_data['id']}")
+                    self.created_deck_id = response_data['id']  # Store for potential future tests
+                else:
+                    print(f"   ❌ No deck ID in response")
+                
+                # Check title and description
+                title = response_data.get('title', '')
+                description = response_data.get('description', '')
+                print(f"   Title: {title}")
+                print(f"   Description: {description}")
+                
+                if "EcoTech Solutions" in title:
+                    print(f"   ✅ Title contains company name")
+                else:
+                    print(f"   ❌ Title missing company name")
+                
+                # Verify slides
+                slides = response_data.get('slides', [])
+                print(f"   ✅ Generated {len(slides)} slides")
+                
+                if len(slides) != 9:
+                    print(f"   ❌ Expected 9 slides, got {len(slides)}")
+                    return False
+                
+                # Check each slide for AI content and images
+                slides_with_content = 0
+                slides_with_images = 0
+                placeholder_slides = 0
+                
+                expected_slide_titles = [
+                    "Problem Statement", "Solution", "Market Opportunity", 
+                    "Business Model", "Traction & Metrics", "Competitive Analysis",
+                    "Team", "Financial Projections", "Funding Ask"
+                ]
+                
+                for i, slide in enumerate(slides):
+                    slide_title = slide.get('title', '')
+                    slide_content = slide.get('content', '')
+                    background_image = slide.get('background_image')
+                    slide_order = slide.get('order', -1)
+                    
+                    print(f"   Slide {i+1}: {slide_title} (Order: {slide_order})")
+                    
+                    # Check if slide has meaningful content (not placeholder)
+                    if slide_content and len(slide_content) > 50 and "[AI Generation Error]" not in slide_content:
+                        slides_with_content += 1
+                        print(f"     ✅ Has AI-generated content ({len(slide_content)} chars)")
+                        
+                        # Check if content mentions the company
+                        if "EcoTech Solutions" in slide_content or "solar" in slide_content.lower() or "cleantech" in slide_content.lower():
+                            print(f"     ✅ Content is contextual to company")
+                        else:
+                            print(f"     ⚠️  Content may not be contextual")
+                    else:
+                        placeholder_slides += 1
+                        if "[AI Generation Error]" in slide_content:
+                            print(f"     ❌ AI Generation Error in content")
+                        else:
+                            print(f"     ❌ Content too short or missing ({len(slide_content)} chars)")
+                    
+                    # Check background image
+                    if background_image:
+                        slides_with_images += 1
+                        print(f"     ✅ Has background image: {background_image[:50]}...")
+                    else:
+                        print(f"     ❌ No background image")
+                    
+                    # Verify slide order
+                    if slide_order == i:
+                        print(f"     ✅ Correct slide order")
+                    else:
+                        print(f"     ❌ Incorrect slide order: expected {i}, got {slide_order}")
+                
+                # Summary of content quality
+                print(f"\n   📊 Content Quality Summary:")
+                print(f"   - Slides with AI content: {slides_with_content}/9")
+                print(f"   - Slides with images: {slides_with_images}/9")
+                print(f"   - Placeholder slides: {placeholder_slides}/9")
+                
+                # Performance check
+                if generation_time > 60:
+                    print(f"   ⚠️  Generation took longer than expected: {generation_time:.2f}s")
+                else:
+                    print(f"   ✅ Generation completed in reasonable time: {generation_time:.2f}s")
+                
+                # Overall success criteria
+                content_success = slides_with_content >= 7  # At least 7/9 slides should have good content
+                image_success = slides_with_images >= 7     # At least 7/9 slides should have images
+                performance_success = generation_time < 120  # Should complete within 2 minutes
+                
+                if content_success and image_success and performance_success:
+                    print(f"   🎉 Auto-generation fully successful!")
+                    return True
+                else:
+                    print(f"   ⚠️  Auto-generation partially successful:")
+                    if not content_success:
+                        print(f"     - Content quality needs improvement")
+                    if not image_success:
+                        print(f"     - Image assignment needs improvement")
+                    if not performance_success:
+                        print(f"     - Performance needs improvement")
+                    return False
+                    
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Error: {response.text[:500]}")
+                return False
+                
+        except requests.exceptions.Timeout:
+            print(f"❌ Failed - Request timeout (120s)")
+            return False
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            return False
+
 def main():
     print("🚀 Starting DeckCraft Pro API Testing...")
     print("=" * 60)
