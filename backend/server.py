@@ -464,6 +464,93 @@ async def get_templates():
     ]
     return templates
 
+# Export functionality
+@api_router.post("/export/pdf/{deck_id}")
+async def export_deck_to_pdf(deck_id: str):
+    """Export deck to PDF format"""
+    try:
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.lib import colors
+        
+        # Get deck data
+        deck = await db.decks.find_one({"id": deck_id})
+        if not deck:
+            raise HTTPException(status_code=404, detail="Deck not found")
+        
+        # Create PDF buffer
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
+        
+        # Get styles
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            spaceAfter=30,
+            textColor=colors.HexColor('#2563eb')
+        )
+        
+        slide_title_style = ParagraphStyle(
+            'SlideTitle',
+            parent=styles['Heading2'],
+            fontSize=18,
+            spaceAfter=12,
+            textColor=colors.HexColor('#1f2937')
+        )
+        
+        content_style = ParagraphStyle(
+            'SlideContent',
+            parent=styles['Normal'],
+            fontSize=12,
+            spaceAfter=20,
+            leftIndent=20
+        )
+        
+        # Build PDF content
+        story = []
+        
+        # Add title page
+        story.append(Paragraph(deck['title'], title_style))
+        if deck.get('description'):
+            story.append(Paragraph(deck['description'], styles['Normal']))
+        story.append(Spacer(1, 20))
+        
+        # Add slides
+        for i, slide in enumerate(deck['slides']):
+            if i > 0:  # Add page break between slides
+                story.append(Spacer(1, 30))
+            
+            story.append(Paragraph(f"Slide {i+1}: {slide['title']}", slide_title_style))
+            story.append(Paragraph(slide['content'], content_style))
+            
+            # Add background image if exists
+            if slide.get('background_image'):
+                try:
+                    # Note: For production, you'd want to handle image downloading/processing
+                    story.append(Spacer(1, 10))
+                    story.append(Paragraph("<i>Background Image: " + slide['background_image'] + "</i>", styles['Italic']))
+                except:
+                    pass
+        
+        # Build PDF
+        doc.build(story)
+        buffer.seek(0)
+        
+        # Return as streaming response
+        return StreamingResponse(
+            BytesIO(buffer.getvalue()),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={deck['title']}.pdf"}
+        )
+        
+    except Exception as e:
+        logger.error(f"Error exporting PDF: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to export PDF: {str(e)}")
+
 # Health check
 @api_router.get("/health")
 async def health_check():
