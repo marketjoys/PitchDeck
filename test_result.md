@@ -214,6 +214,54 @@ backend:
         comment: "Slide model now supports background_image and images array fields. Proper persistence and retrieval working."
 
 frontend:
+  - task: "Enhanced Font System Integration"
+    implemented: true
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Added dynamic font loading hooks (useFonts, useFontSizes), Google Fonts integration, Font Panel with topic-based font selection and live previews. Enhanced slide editor with dynamic font application and sizing. Not yet tested."
+
+  - task: "AI Image Generation UI"
+    implemented: true
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Enhanced Image Panel with AI generation tab, integrated Google Gemini image generation with style selection (professional, creative, minimal, modern). Added generateAIImage() function and improved image management UI. Not yet tested."
+
+  - task: "Enhanced Research UI with Image Prompts"
+    implemented: true
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Enhanced research panel with conductEnhancedResearch() function that auto-generates contextual image prompts. Research results now display suggested image prompts from Perplexity. Citations removed from UI display. Not yet tested."
+
+  - task: "Improved Slide Editor Interface"
+    implemented: true
+    working: false
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Enhanced toolbar with Font, Images, and AI Research buttons. Improved canvas area with dynamic font application and better styling. Added Font Panel, enhanced Image Panel, and improved overall UI/UX. Not yet tested."
+
   - task: "Image Management UI - Stock Images and Upload"
     implemented: true
     working: false
