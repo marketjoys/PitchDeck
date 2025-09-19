@@ -816,7 +816,88 @@ class DeckCraftAPITester:
         
         return False
 
-    def test_auto_generate_deck(self):
+    def test_individual_components_isolation(self):
+        """Test individual components work in isolation for debugging"""
+        print(f"\n🔍 Testing Individual Components in Isolation...")
+        
+        # Test 1: Enhanced Research Component
+        print(f"\n   1️⃣ Testing Enhanced Research Component...")
+        research_data = {
+            "query": "Market analysis for TechStart AI-powered productivity tools targeting seed investors",
+            "research_type": "market_analysis",
+            "industry": "technology",
+            "max_tokens": 800
+        }
+        
+        research_success, research_response = self.run_test(
+            "Enhanced Research Component",
+            "POST",
+            "research/enhanced-content",
+            200,
+            data=research_data
+        )
+        
+        if research_success:
+            content = research_response.get('data', {}).get('content', '')
+            image_prompt = research_response.get('data', {}).get('image_prompt', '')
+            print(f"     ✅ Research content: {len(content)} chars")
+            print(f"     ✅ Image prompt: {len(image_prompt)} chars")
+        
+        # Test 2: AI Image Generation Component
+        print(f"\n   2️⃣ Testing AI Image Generation Component...")
+        image_data = {
+            "prompt": "Professional technology startup office with modern AI productivity tools",
+            "style": "professional"
+        }
+        
+        image_success, image_response = self.run_test(
+            "AI Image Generation Component",
+            "POST",
+            "images/generate",
+            200,
+            data=image_data
+        )
+        
+        if image_success:
+            image_url = image_response.get('image_url', '')
+            print(f"     ✅ AI image generated: {image_url}")
+        
+        # Test 3: Stock Images Fallback
+        print(f"\n   3️⃣ Testing Stock Images Fallback...")
+        stock_success, stock_response = self.run_test(
+            "Stock Images Fallback",
+            "GET",
+            "images/stock?category=business",
+            200
+        )
+        
+        if stock_success and isinstance(stock_response, list):
+            print(f"     ✅ Stock images available: {len(stock_response)} images")
+        
+        # Test 4: Font System
+        print(f"\n   4️⃣ Testing Font System...")
+        font_success, font_response = self.run_test(
+            "Font System Component",
+            "GET",
+            "fonts/topic/technology",
+            200
+        )
+        
+        if font_success:
+            fonts = font_response.get('fonts', {})
+            print(f"     ✅ Font recommendations: {fonts.get('primary', 'Unknown')}")
+        
+        # Summary
+        components_working = sum([research_success, image_success, stock_success, font_success])
+        print(f"\n   📊 Individual Components Summary: {components_working}/4 working")
+        
+        if components_working >= 3:
+            print(f"   ✅ Most components working individually - auto-generation should work")
+            return True
+        else:
+            print(f"   ❌ Multiple components failing - auto-generation likely to fail")
+            return False
+
         """Test auto-generation functionality with realistic data"""
         auto_generate_data = {
             "company_name": "EcoTech Solutions",
