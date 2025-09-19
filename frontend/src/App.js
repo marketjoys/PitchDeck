@@ -743,6 +743,116 @@ const SlideEditor = () => {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Image Panel */}
+      <Sheet open={imagePanel} onOpenChange={setImagePanel}>
+        <SheetContent className="w-[500px] sm:w-[540px] z-[60]">
+          <SheetHeader>
+            <SheetTitle className="flex items-center">
+              <ImageIcon className="w-5 h-5 mr-2" />
+              Image Library
+            </SheetTitle>
+            <SheetDescription>
+              Add professional images to your slides from our stock library or upload your own
+            </SheetDescription>
+          </SheetHeader>
+          
+          <div className="mt-6 space-y-4">
+            <Tabs defaultValue="stock" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="stock">Stock Images</TabsTrigger>
+                <TabsTrigger value="upload">Upload</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="stock" className="space-y-3">
+                <div className="text-sm text-slate-600 mb-4">
+                  Click on any image to add it to your slide, or use "Set as Background" to make it a slide background.
+                </div>
+                <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+                  {stockImages.map((image) => (
+                    <div key={image.id} className="group relative">
+                      <img 
+                        src={image.url} 
+                        alt={image.title}
+                        className="w-full h-24 object-cover rounded cursor-pointer hover:opacity-75 transition-opacity"
+                        onClick={() => addStockImageToSlide(image.url)}
+                      />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center">
+                        <div className="space-y-1">
+                          <Button
+                            size="sm"
+                            className="w-full text-xs"
+                            onClick={() => addStockImageToSlide(image.url)}
+                          >
+                            Add to Slide
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full text-xs bg-white/20 border-white/30 text-white hover:bg-white/30"
+                            onClick={() => setSlideBackgroundImage(image.url)}
+                          >
+                            Set Background
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="upload" className="space-y-3">
+                <div className="text-sm text-slate-600 mb-4">
+                  Upload your own images to use in your presentation.
+                </div>
+                <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="image-upload"
+                    disabled={uploadingImage}
+                  />
+                  <label 
+                    htmlFor="image-upload" 
+                    className="cursor-pointer"
+                  >
+                    <ImageIcon className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                    <p className="text-slate-600">
+                      {uploadingImage ? 'Uploading...' : 'Click to upload an image'}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-2">
+                      Supports: JPG, PNG, GIF (Max 10MB)
+                    </p>
+                  </label>
+                </div>
+                
+                {currentSlide?.background_image && (
+                  <div className="mt-4">
+                    <label className="text-sm font-medium">Current Background:</label>
+                    <div className="relative mt-2">
+                      <img 
+                        src={currentSlide.background_image} 
+                        alt="Current background"
+                        className="w-full h-24 object-cover rounded"
+                      />
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="absolute top-2 right-2"
+                        onClick={() => updateSlide(currentSlide.id, { background_image: null })}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
