@@ -1137,6 +1137,102 @@ const SlideEditor = () => {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Font Panel */}
+      <Sheet open={fontPanel} onOpenChange={setFontPanel}>
+        <SheetContent className="w-[500px] sm:w-[540px] z-[60]">
+          <SheetHeader>
+            <SheetTitle className="flex items-center">
+              <Type className="w-5 h-5 mr-2" />
+              Font System
+            </SheetTitle>
+            <SheetDescription>
+              Choose fonts that match your presentation topic and adjust sizing
+            </SheetDescription>
+          </SheetHeader>
+          
+          <div className="mt-6 space-y-6">
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Topic Style</label>
+              <select 
+                className="w-full p-3 border rounded-md"
+                value={selectedTopic}
+                onChange={(e) => setSelectedTopic(e.target.value)}
+              >
+                <option value="business">Business - Professional & Trustworthy</option>
+                <option value="tech">Technology - Modern & Innovative</option>
+                <option value="creative">Creative - Friendly & Approachable</option>
+                <option value="startup">Startup - Bold & Energetic</option>
+                <option value="finance">Finance - Authoritative & Sophisticated</option>
+              </select>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Slide Element</label>
+              <select 
+                className="w-full p-3 border rounded-md"
+                value={selectedSlideType}
+                onChange={(e) => setSelectedSlideType(e.target.value)}
+              >
+                <option value="title">Title Slide - Largest Text</option>
+                <option value="header">Header Slide - Large Text</option>
+                <option value="content">Content Slide - Medium Text</option>
+                <option value="subtitle">Subtitle Slide - Smaller Text</option>
+              </select>
+            </div>
+
+            {fonts && (
+              <div className="space-y-4">
+                <div className="bg-slate-50 p-4 rounded-lg">
+                  <h4 className="font-semibold mb-3">Font Preview</h4>
+                  <div className="space-y-3">
+                    <div style={{ fontFamily: fonts.primary }}>
+                      <div className="text-sm text-slate-600">Primary: {fonts.primary}</div>
+                      <div className="text-xl font-bold">Your Slide Title</div>
+                    </div>
+                    <div style={{ fontFamily: fonts.secondary }}>
+                      <div className="text-sm text-slate-600">Secondary: {fonts.secondary}</div>
+                      <div className="text-base">Your slide content and description text</div>
+                    </div>
+                    <div style={{ fontFamily: fonts.accent }}>
+                      <div className="text-sm text-slate-600">Accent: {fonts.accent}</div>
+                      <div className="text-sm font-medium">Headers and emphasis</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <div className="text-sm">
+                    <strong>Character:</strong> {fonts.character}
+                  </div>
+                </div>
+
+                {fontSizes && (
+                  <div className="bg-green-50 p-3 rounded-lg">
+                    <div className="text-sm font-medium mb-2">Size Classes for {selectedSlideType}:</div>
+                    <div className="text-xs space-y-1">
+                      <div><strong>Main:</strong> {fontSizes.main}</div>
+                      <div><strong>Subtitle:</strong> {fontSizes.subtitle}</div>
+                      <div><strong>Description:</strong> {fontSizes.description}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <Button 
+              className="w-full"
+              onClick={() => {
+                // Auto-apply fonts would update the slide
+                setFontPanel(false);
+              }}
+            >
+              <Paintbrush className="w-4 h-4 mr-2" />
+              Apply Font Style
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
