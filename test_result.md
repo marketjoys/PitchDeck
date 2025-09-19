@@ -341,11 +341,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "AI Research - Perplexity API Integration"
-    - "Stock Images Management"
-    - "Image Upload Functionality"
-    - "PDF Export Functionality"
-    - "Enhanced Slide Model with Images"
+    - "Auto-Generation Functionality"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
