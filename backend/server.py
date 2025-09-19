@@ -472,6 +472,138 @@ async def get_templates():
     ]
     return templates
 
+# Auto-generation functionality
+@api_router.post("/decks/auto-generate", response_model=Deck)
+async def auto_generate_deck(request: AutoGenerateRequest, user_id: str = "default_user"):
+    """Automatically generate a complete pitch deck with AI content and images"""
+    try:
+        # Define slide templates with specific prompts
+        slide_templates = [
+            {
+                "title": "Problem Statement",
+                "prompt": f"Write a compelling problem statement for {request.company_name} in the {request.industry} industry. Focus on the pain point your business solves. Keep it concise and impactful for {request.target_audience}.",
+                "image_category": "business",
+                "order": 0
+            },
+            {
+                "title": "Solution",
+                "prompt": f"Describe the innovative solution that {request.company_name} provides. Explain how it addresses the problem and what makes it unique. {request.business_description}",
+                "image_category": "presentation",
+                "order": 1
+            },
+            {
+                "title": "Market Opportunity",
+                "prompt": f"Provide market size analysis and opportunity for {request.company_name} in the {request.industry} industry. Include TAM, SAM, SOM if possible and growth projections.",
+                "image_category": "analytics",
+                "order": 2
+            },
+            {
+                "title": "Business Model",
+                "prompt": f"Explain the business model for {request.company_name}. How do you make money? What are your revenue streams? Include pricing strategy if relevant.",
+                "image_category": "professional",
+                "order": 3
+            },
+            {
+                "title": "Traction & Metrics",
+                "prompt": f"Describe the current traction and key metrics for {request.company_name}. Include user growth, revenue, partnerships, or other relevant KPIs.",
+                "image_category": "analytics",
+                "order": 4
+            },
+            {
+                "title": "Competitive Analysis",
+                "prompt": f"Analyze the competitive landscape for {request.company_name} in the {request.industry} industry. What are your competitive advantages?",
+                "image_category": "team",
+                "order": 5
+            },
+            {
+                "title": "Team",
+                "prompt": f"Highlight the key team members and their expertise that make {request.company_name} successful. Focus on relevant experience and achievements.",
+                "image_category": "team",
+                "order": 6
+            },
+            {
+                "title": "Financial Projections",
+                "prompt": f"Provide 3-5 year financial projections for {request.company_name}. Include revenue forecasts, key assumptions, and path to profitability.",
+                "image_category": "analytics",
+                "order": 7
+            },
+            {
+                "title": "Funding Ask",
+                "prompt": f"Clearly state your funding ask for {request.company_name}. How much are you raising? What will you use the funds for? What milestones will you achieve?",
+                "image_category": "presentation",
+                "order": 8
+            }
+        ]
+        
+        # Create deck
+        deck_data = {
+            "title": f"{request.company_name} - Investor Pitch Deck",
+            "description": f"AI-generated investor presentation for {request.company_name} in the {request.industry} industry",
+            "template_id": "startup_pitch"
+        }
+        deck = Deck(user_id=user_id, slides=[], **deck_data)
+        
+        # Generate content for each slide
+        generated_slides = []
+        for template in slide_templates:
+            try:
+                # Generate content using Perplexity
+                system_prompt = f"You are a professional pitch deck consultant creating content for {request.target_audience}. Write clear, compelling, and data-driven content that tells a story. Keep responses concise but impactful (200-300 words max)."
+                
+                content_result = await perplexity_service.search(
+                    template["prompt"], 
+                    system_prompt, 
+                    max_tokens=500
+                )
+                
+                # Select appropriate image
+                background_image = None
+                if request.auto_populate_images:
+                    # Get images for this category
+                    category_images = [img for img in STOCK_IMAGES if img["category"] == template["image_category"]]
+                    if category_images:
+                        # Select first image from category
+                        background_image = category_images[0]["url"]
+                
+                # Create slide
+                slide = Slide(
+                    title=template["title"],
+                    content=content_result.content,
+                    slide_type="text",
+                    background_image=background_image,
+                    images=[],
+                    order=template["order"]
+                )
+                generated_slides.append(slide)
+                
+                # Add small delay to avoid rate limiting
+                await asyncio.sleep(0.5)
+                
+            except Exception as e:
+                logger.error(f"Error generating slide {template['title']}: {str(e)}")
+                # Create a basic slide if AI generation fails
+                slide = Slide(
+                    title=template["title"],
+                    content=f"[AI Generation Error] Please add content for {template['title']} slide here.",
+                    slide_type="text",
+                    background_image=None,
+                    order=template["order"]
+                )
+                generated_slides.append(slide)
+        
+        # Add slides to deck
+        deck.slides = generated_slides
+        
+        # Save to database
+        await db.decks.insert_one(deck.dict())
+        
+        logger.info(f"Auto-generated deck created: {deck.id}")
+        return deck
+        
+    except Exception as e:
+        logger.error(f"Error auto-generating deck: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to auto-generate deck: {str(e)}")
+
 # Export functionality
 @api_router.post("/export/pdf/{deck_id}")
 async def export_deck_to_pdf(deck_id: str):
