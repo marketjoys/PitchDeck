@@ -567,21 +567,58 @@ const SlideEditor = () => {
         {/* Canvas Area */}
         <div className="flex-1 p-8 overflow-auto">
           <div className="max-w-4xl mx-auto">
-            <Card className="aspect-video bg-white shadow-lg">
-              <CardContent className="p-8 h-full">
+            <Card 
+              className="aspect-video bg-white shadow-lg relative overflow-hidden"
+              style={{
+                backgroundImage: currentSlide?.background_image ? `url(${currentSlide.background_image})` : 'none',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
+            >
+              {currentSlide?.background_image && (
+                <div className="absolute inset-0 bg-black/30"></div>
+              )}
+              <CardContent className="p-8 h-full relative z-10">
                 <div className="h-full flex flex-col">
                   <Input
                     value={currentSlide?.title || ''}
                     onChange={(e) => updateSlide(currentSlide.id, { title: e.target.value })}
-                    className="text-2xl font-bold border-0 p-0 mb-6 bg-transparent"
+                    className={`text-2xl font-bold border-0 p-0 mb-6 bg-transparent ${
+                      currentSlide?.background_image ? 'text-white' : 'text-slate-900'
+                    }`}
                     placeholder="Slide title..."
                   />
                   <Textarea
                     value={currentSlide?.content || ''}
                     onChange={(e) => updateSlide(currentSlide.id, { content: e.target.value })}
-                    className="flex-1 border-0 p-0 resize-none bg-transparent text-lg"
+                    className={`flex-1 border-0 p-0 resize-none bg-transparent text-lg ${
+                      currentSlide?.background_image ? 'text-white placeholder-white/70' : 'text-slate-700'
+                    }`}
                     placeholder="Add your content here..."
                   />
+                  
+                  {/* Display slide images */}
+                  {currentSlide?.images && currentSlide.images.length > 0 && (
+                    <div className="mt-4 grid grid-cols-2 gap-4">
+                      {currentSlide.images.map((imageUrl, index) => (
+                        <div key={index} className="relative group">
+                          <img 
+                            src={imageUrl} 
+                            alt={`Slide image ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-lg"
+                          />
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeImageFromSlide(index)}
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
