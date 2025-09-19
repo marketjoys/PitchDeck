@@ -237,6 +237,200 @@ class DeckCraftAPITester:
                 print(f"   Content length: {content_length} characters")
         return success
 
+    def test_get_stock_images(self):
+        """Test stock images endpoint"""
+        success, response = self.run_test(
+            "Get Stock Images",
+            "GET",
+            "images/stock",
+            200
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} stock images")
+            if response:
+                first_image = response[0]
+                print(f"   Sample image: {first_image.get('title', 'Unknown')} ({first_image.get('category', 'No category')})")
+                print(f"   Image has URL: {'url' in first_image}")
+                print(f"   Image has tags: {len(first_image.get('tags', []))} tags")
+        return success
+
+    def test_get_stock_images_by_category(self):
+        """Test stock images endpoint with category filter"""
+        success, response = self.run_test(
+            "Get Stock Images by Category",
+            "GET",
+            "images/stock?category=presentation",
+            200
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} presentation images")
+            # Verify all returned images are in the presentation category
+            if response:
+                categories = [img.get('category') for img in response]
+                all_presentation = all(cat == 'presentation' for cat in categories)
+                print(f"   All images in presentation category: {all_presentation}")
+        return success
+
+    def test_image_upload(self):
+        """Test image upload endpoint"""
+        # Create a simple test image file in memory
+        import io
+        from PIL import Image
+        
+        # Create a simple test image
+        img = Image.new('RGB', (100, 100), color='red')
+        img_buffer = io.BytesIO()
+        img.save(img_buffer, format='JPEG')
+        img_buffer.seek(0)
+        
+        # Prepare multipart form data
+        files = {'file': ('test_image.jpg', img_buffer, 'image/jpeg')}
+        
+        url = f"{self.api_url}/images/upload"
+        print(f"\n🔍 Testing Image Upload...")
+        print(f"   URL: {url}")
+        
+        self.tests_run += 1
+        
+        try:
+            response = requests.post(url, files=files, timeout=30)
+            success = response.status_code == 200
+            
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                response_data = response.json()
+                print(f"   Response: {response_data}")
+                
+                # Test accessing the uploaded image
+                if response_data.get('image_url'):
+                    image_url = f"{self.base_url}{response_data['image_url']}"
+                    img_response = requests.get(image_url, timeout=10)
+                    if img_response.status_code == 200:
+                        print(f"   ✅ Uploaded image accessible at: {image_url}")
+                    else:
+                        print(f"   ❌ Uploaded image not accessible: {img_response.status_code}")
+                        
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Error: {response.text[:200]}")
+            
+            return success
+            
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            return False
+
+    def test_pdf_export(self):
+        """Test PDF export functionality"""
+        # Use the test deck ID from review request or created deck
+        test_deck_id = "ab6989bc-7ae5-4582-82cb-a422bddba988"
+        if self.created_deck_id:
+            test_deck_id = self.created_deck_id
+            
+        url = f"{self.api_url}/export/pdf/{test_deck_id}"
+        print(f"\n🔍 Testing PDF Export...")
+        print(f"   URL: {url}")
+        print(f"   Deck ID: {test_deck_id}")
+        
+        self.tests_run += 1
+        
+        try:
+            response = requests.post(url, timeout=60)  # Longer timeout for PDF generation
+            success = response.status_code == 200
+            
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                
+                # Check if response is PDF
+                content_type = response.headers.get('content-type', '')
+                if 'application/pdf' in content_type:
+                    print(f"   ✅ Response is PDF format")
+                    print(f"   PDF size: {len(response.content)} bytes")
+                else:
+                    print(f"   ⚠️  Content type: {content_type}")
+                    
+                # Check content disposition header
+                content_disposition = response.headers.get('content-disposition', '')
+                if 'attachment' in content_disposition:
+                    print(f"   ✅ PDF download header present")
+                else:
+                    print(f"   ⚠️  Content disposition: {content_disposition}")
+                    
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Error: {response.text[:200]}")
+            
+            return success
+            
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            return False
+
+    def test_enhanced_slide_model(self):
+        """Test enhanced slide model with background_image and images fields"""
+        if not self.created_deck_id:
+            print("❌ Skipping - No deck ID available")
+            return False
+            
+        # First get the deck to find a slide ID
+        try:
+            deck_response = requests.get(f"{self.api_url}/decks/{self.created_deck_id}")
+            deck_data = deck_response.json()
+            if deck_data.get('slides'):
+                slide_id = deck_data['slides'][0]['id']
+                
+                # Test updating slide with image fields
+                slide_update = {
+                    "title": "Enhanced Slide with Images",
+                    "content": "This slide has background and additional images",
+                    "background_image": "https://images.unsplash.com/photo-1542744173-8e7e53415bb0",
+                    "images": [
+                        "https://images.unsplash.com/photo-1573167507387-6b4b98cb7c13",
+                        "https://images.unsplash.com/photo-1505373877841-8d25f7d46678"
+                    ]
+                }
+                
+                success, response = self.run_test(
+                    "Update Slide with Images",
+                    "PUT",
+                    f"decks/{self.created_deck_id}/slides/{slide_id}",
+                    200,
+                    data=slide_update
+                )
+                
+                if success:
+                    # Verify the slide was updated by fetching the deck again
+                    verify_response = requests.get(f"{self.api_url}/decks/{self.created_deck_id}")
+                    if verify_response.status_code == 200:
+                        updated_deck = verify_response.json()
+                        updated_slide = next((s for s in updated_deck['slides'] if s['id'] == slide_id), None)
+                        if updated_slide:
+                            has_bg_image = 'background_image' in updated_slide and updated_slide['background_image']
+                            has_images = 'images' in updated_slide and len(updated_slide['images']) > 0
+                            print(f"   ✅ Slide has background_image: {has_bg_image}")
+                            print(f"   ✅ Slide has images array: {has_images}")
+                            if has_images:
+                                print(f"   Images count: {len(updated_slide['images'])}")
+                        else:
+                            print(f"   ❌ Could not find updated slide")
+                    
+                return success
+        except Exception as e:
+            print(f"❌ Failed to test enhanced slide model: {str(e)}")
+            return False
+
 def main():
     print("🚀 Starting DeckCraft Pro API Testing...")
     print("=" * 60)
