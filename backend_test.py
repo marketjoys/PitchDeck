@@ -984,7 +984,7 @@ def main():
         tester.test_gemini_image_generation,
         tester.test_font_system,
         tester.test_enhanced_research,
-        tester.test_enhanced_auto_generation,
+        tester.test_optimized_auto_generation,
         tester.test_get_templates,
         tester.test_create_deck,
         tester.test_get_decks,
