@@ -318,17 +318,13 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Google Gemini AI Image Generation Integration" 
-    - "Enhanced Dynamic Font System"
-    - "Citation Removal and Enhanced Research"
     - "Enhanced Auto-Generation with AI Images"
-    - "Enhanced Font System Integration"
-    - "AI Image Generation UI"
-    - "Enhanced Research UI with Image Prompts"
-    - "Improved Slide Editor Interface"
-  stuck_tasks: []
+    - "Auto-Generation Functionality"
+  stuck_tasks:
+    - "Enhanced Auto-Generation with AI Images"
+    - "Auto-Generation Functionality"
   test_all: false
-  test_priority: "high_first"
+  test_priority: "stuck_first"
 
 agent_communication:
   - agent: "main"
