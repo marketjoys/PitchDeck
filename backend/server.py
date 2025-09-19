@@ -145,6 +145,16 @@ class PerplexityService:
             }
         )
     
+    def clean_citations(self, content: str) -> str:
+        """Remove citation numbers and links while keeping research quality"""
+        # Remove citation numbers like [1], [2], etc.
+        content = re.sub(r'\[\d+\]', '', content)
+        # Remove extra whitespace
+        content = re.sub(r'\s+', ' ', content).strip()
+        # Remove citation-related phrases
+        content = re.sub(r'(according to sources?|as reported by|sources indicate)', '', content, flags=re.IGNORECASE)
+        return content
+    
     async def search(self, query: str, system_prompt: str = None, max_tokens: int = 2000) -> PerplexityResponse:
         messages = []
         if system_prompt:
@@ -164,32 +174,173 @@ class PerplexityService:
             result = response.json()
             
             content = result["choices"][0]["message"]["content"]
-            citations = []
-            
-            # Extract citations from message content (Perplexity includes them in the response)
-            if hasattr(result.get("choices", [{}])[0].get("message", {}), "citations"):
-                citations = result["choices"][0]["message"].get("citations", [])
-            else:
-                # Parse citations from content if they exist
-                import re
-                citation_pattern = r'\[(\d+)\]'
-                citation_matches = re.findall(citation_pattern, content)
-                for i, match in enumerate(citation_matches[:5]):  # Limit to 5 citations
-                    citations.append({
-                        "title": f"Source {match}",
-                        "url": f"https://example.com/source{match}",
-                        "snippet": "Research data and insights"
-                    })
+            # Clean citations while keeping research depth
+            content = self.clean_citations(content)
             
             return PerplexityResponse(
                 content=content,
-                citations=citations,
+                citations=[],  # Remove citations from response
                 model=result.get("model", "sonar"),
                 usage=result.get("usage", {})
             )
         except Exception as e:
             logger.error(f"Perplexity API error: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Research service unavailable: {str(e)}")
+
+    async def generate_image_prompt(self, slide_title: str, slide_content: str, industry: str, style: str = "professional") -> str:
+        """Generate contextual image prompts for slides"""
+        system_prompt = f"""You are an expert visual designer creating image prompts for pitch deck slides. Generate detailed, specific image prompts that are contextually relevant to the slide content and appropriate for {style} business presentations. 
+
+Focus on:
+- Professional imagery suitable for investor presentations
+- Industry-relevant visuals for {industry}
+- Specific composition and lighting details
+- Avoid generic stock photos
+
+Return only the image prompt, no explanations."""
+        
+        query = f"""Create a professional image prompt for a pitch deck slide titled "{slide_title}" with content about: {slide_content[:200]}...
+
+The image should be relevant to the {industry} industry and suitable for a business presentation. Make the prompt specific and detailed for high-quality image generation."""
+        
+        try:
+            result = await self.search(query, system_prompt, max_tokens=200)
+            return result.content.strip()
+        except Exception as e:
+            logger.error(f"Error generating image prompt: {str(e)}")
+            return f"Professional {industry} business presentation image, modern corporate style, high quality"
+
+# Google Gemini Image Generation Service
+class GeminiImageService:
+    def __init__(self):
+        self.client = genai.Client(api_key=GEMINI_API_KEY)
+        self.model = "gemini-2.5-flash-image-preview"
+        
+    async def generate_image(self, prompt: str, filename_prefix: str = "generated") -> str:
+        """Generate image using Google Gemini and return file path"""
+        try:
+            contents = [
+                types.Content(
+                    role="user",
+                    parts=[
+                        types.Part.from_text(text=prompt),
+                    ],
+                ),
+            ]
+            
+            generate_content_config = types.GenerateContentConfig(
+                response_modalities=["IMAGE", "TEXT"],
+            )
+            
+            # Create uploads directory if it doesn't exist
+            upload_dir = Path("/app/backend/uploads")
+            upload_dir.mkdir(exist_ok=True)
+            
+            # Generate unique filename
+            image_id = str(uuid.uuid4())
+            
+            for chunk in self.client.models.generate_content_stream(
+                model=self.model,
+                contents=contents,
+                config=generate_content_config,
+            ):
+                if (
+                    chunk.candidates is None
+                    or chunk.candidates[0].content is None
+                    or chunk.candidates[0].content.parts is None
+                ):
+                    continue
+                    
+                if (chunk.candidates[0].content.parts[0].inline_data and 
+                    chunk.candidates[0].content.parts[0].inline_data.data):
+                    
+                    inline_data = chunk.candidates[0].content.parts[0].inline_data
+                    data_buffer = inline_data.data
+                    file_extension = mimetypes.guess_extension(inline_data.mime_type) or '.png'
+                    
+                    filename = f"{filename_prefix}_{image_id}{file_extension}"
+                    file_path = upload_dir / filename
+                    
+                    # Save the image
+                    with open(file_path, 'wb') as f:
+                        f.write(data_buffer)
+                    
+                    logger.info(f"Generated image saved to: {file_path}")
+                    return f"/api/images/uploads/{filename}"
+            
+            raise HTTPException(status_code=500, detail="No image generated")
+            
+        except Exception as e:
+            logger.error(f"Gemini image generation error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Image generation failed: {str(e)}")
+
+# Font System
+class FontService:
+    @staticmethod
+    def get_topic_fonts(topic: str) -> Dict[str, Any]:
+        """Get font recommendations based on topic"""
+        font_systems = {
+            "business": {
+                "primary": "Inter",
+                "secondary": "Roboto",
+                "accent": "Lato",
+                "character": "professional, clean, trustworthy"
+            },
+            "tech": {
+                "primary": "JetBrains Mono",
+                "secondary": "Fira Code", 
+                "accent": "Source Code Pro",
+                "character": "modern, technical, innovative"
+            },
+            "creative": {
+                "primary": "Poppins",
+                "secondary": "Nunito",
+                "accent": "Montserrat",
+                "character": "creative, friendly, approachable"
+            },
+            "startup": {
+                "primary": "Space Grotesk",
+                "secondary": "DM Sans",
+                "accent": "Plus Jakarta Sans",
+                "character": "bold, disruptive, energetic"
+            },
+            "finance": {
+                "primary": "IBM Plex Sans",
+                "secondary": "Source Sans Pro",
+                "accent": "Muli",
+                "character": "authoritative, reliable, sophisticated"
+            }
+        }
+        
+        return font_systems.get(topic.lower(), font_systems["business"])
+    
+    @staticmethod
+    def get_font_sizes(slide_type: str) -> Dict[str, str]:
+        """Get font sizes for different slide elements"""
+        size_systems = {
+            "title": {
+                "main": "text-4xl md:text-6xl",     # 36px-60px
+                "subtitle": "text-xl md:text-2xl",   # 20px-24px
+                "description": "text-base md:text-lg" # 16px-18px
+            },
+            "header": {
+                "main": "text-3xl md:text-4xl",     # 30px-36px
+                "subtitle": "text-lg md:text-xl",    # 18px-20px
+                "description": "text-sm md:text-base" # 14px-16px
+            },
+            "content": {
+                "main": "text-2xl md:text-3xl",     # 24px-30px
+                "subtitle": "text-base md:text-lg",  # 16px-18px
+                "description": "text-sm md:text-base" # 14px-16px
+            },
+            "subtitle": {
+                "main": "text-xl md:text-2xl",      # 20px-24px
+                "subtitle": "text-base md:text-lg",  # 16px-18px  
+                "description": "text-sm md:text-base" # 14px-16px
+            }
+        }
+        
+        return size_systems.get(slide_type.lower(), size_systems["content"])
 
 # Global Perplexity service instance
 perplexity_service = PerplexityService()
