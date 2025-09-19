@@ -794,44 +794,69 @@ async def auto_generate_deck(request: AutoGenerateRequest, user_id: str = "defau
         generated_slides = []
         for template in slide_templates:
             try:
-                # Generate content using Perplexity
-                system_prompt = f"You are a professional pitch deck consultant creating content for {request.target_audience}. Write clear, compelling, and data-driven content that tells a story. Keep responses concise but impactful (200-300 words max)."
+                # Enhanced system prompt for better content quality
+                system_prompt = f"""You are a world-class pitch deck consultant creating investor-ready content for {request.target_audience} in the {request.funding_stage} funding stage. 
+
+Create compelling, data-driven content that:
+- Gets straight to the point with clear value propositions  
+- Uses specific metrics and concrete examples where possible
+- Tells a cohesive story that builds investor confidence
+- Avoids generic statements and focuses on unique insights
+- Keeps content concise but impactful (150-250 words max)
+
+Write in a professional, confident tone that demonstrates deep market understanding."""
                 
+                # Generate content using enhanced research
                 content_result = await perplexity_service.search(
                     template["prompt"], 
                     system_prompt, 
-                    max_tokens=500
+                    max_tokens=400
                 )
                 
-                # Select appropriate image
-                background_image = None
-                if request.auto_populate_images:
-                    # Get images for this category
-                    category_images = [img for img in STOCK_IMAGES if img["category"] == template["image_category"]]
-                    if category_images:
-                        # Select first image from category
-                        background_image = category_images[0]["url"]
+                # Generate contextual image prompt for this slide
+                image_prompt = await perplexity_service.generate_image_prompt(
+                    template["title"],
+                    content_result.content,
+                    request.industry,
+                    "professional"
+                )
                 
-                # Create slide
+                # Generate AI image using the contextual prompt
+                ai_image_url = None
+                if request.auto_populate_images:
+                    try:
+                        ai_image_url = await gemini_service.generate_image(
+                            image_prompt, 
+                            f"slide_{template['order']}"
+                        )
+                        logger.info(f"Generated AI image for slide {template['title']}: {ai_image_url}")
+                    except Exception as img_error:
+                        logger.error(f"Failed to generate AI image for {template['title']}: {str(img_error)}")
+                        # Fallback to stock images
+                        category_images = [img for img in STOCK_IMAGES if img["category"] == template["image_category"]]
+                        if category_images:
+                            ai_image_url = category_images[0]["url"]
+                
+                # Create slide with enhanced content and AI-generated image
                 slide = Slide(
                     title=template["title"],
                     content=content_result.content,
                     slide_type="text",
-                    background_image=background_image,
+                    background_image=ai_image_url,
                     images=[],
                     order=template["order"]
                 )
                 generated_slides.append(slide)
                 
-                # Add small delay to avoid rate limiting
-                await asyncio.sleep(0.5)
+                # Add delay to avoid rate limiting both APIs
+                await asyncio.sleep(1.0)
                 
             except Exception as e:
                 logger.error(f"Error generating slide {template['title']}: {str(e)}")
-                # Create a basic slide if AI generation fails
+                # Create a basic slide if generation fails
                 slide = Slide(
                     title=template["title"],
-                    content=f"[AI Generation Error] Please add content for {template['title']} slide here.",
+                    content=f"Please add content for {template['title']} slide. Focus on key points relevant to {request.company_name} in the {request.industry} industry.",
                     slide_type="text",
                     background_image=None,
                     order=template["order"]
