@@ -528,13 +528,23 @@ const SlideEditor = () => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [researchPanel, setResearchPanel] = useState(false);
   const [imagePanel, setImagePanel] = useState(false);
+  const [fontPanel, setFontPanel] = useState(false);
   const [stockImages, setStockImages] = useState([]);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [generatingImage, setGeneratingImage] = useState(false);
   const [researchQuery, setResearchQuery] = useState('');
   const [researchResults, setResearchResults] = useState(null);
   const [researchLoading, setResearchLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
+  const [selectedTopic, setSelectedTopic] = useState('business');
+  const [selectedSlideType, setSelectedSlideType] = useState('content');
+  const [imagePrompt, setImagePrompt] = useState('');
+  const [imageStyle, setImageStyle] = useState('professional');
   const navigate = useNavigate();
+
+  // Load dynamic fonts and sizes
+  const { fonts } = useFonts(selectedTopic);
+  const fontSizes = useFontSizes(selectedSlideType);
 
   useEffect(() => {
     fetchDeck();
