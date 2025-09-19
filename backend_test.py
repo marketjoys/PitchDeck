@@ -631,14 +631,14 @@ class DeckCraftAPITester:
         
         return False
 
-    def test_enhanced_auto_generation(self):
-        """Test Enhanced Auto-Generation with AI Images"""
+    def test_optimized_auto_generation(self):
+        """Test Optimized Auto-Generation with TechStart (Simple Company)"""
         auto_generate_data = {
-            "company_name": "InnovateTech AI",
-            "industry": "Artificial Intelligence",
-            "business_description": "Advanced machine learning platform for enterprise automation and decision making",
+            "company_name": "TechStart",
+            "industry": "technology",
+            "business_description": "AI-powered productivity tools",
             "target_audience": "investors",
-            "funding_stage": "series_b",
+            "funding_stage": "seed",
             "auto_populate_images": True
         }
         
