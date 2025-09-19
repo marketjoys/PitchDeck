@@ -350,6 +350,18 @@ test_plan:
   test_all: false
   test_priority: "high_first"
 
+  - task: "Auto-Generation Functionality"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ Auto-generation functionality working perfectly. POST /api/decks/auto-generate successfully created complete pitch deck for EcoTech Solutions with all 9 slides containing AI-generated content (1100-2366 chars each), appropriate background images from stock images, proper slide ordering (0-8), and contextual content mentioning company details. Generation completed in 63.75 seconds. All success criteria met: 9/9 slides with AI content, 9/9 slides with images, 0/9 placeholder slides."
+
 agent_communication:
     - agent: "testing"
-      message: "Comprehensive backend testing completed successfully. All 14 tests passed including the new pitch deck functionality: AI research endpoints with Perplexity API, stock images management, image upload functionality, PDF export, and enhanced slide model with image support. The backend is fully functional and ready for frontend integration. No critical issues found."
+      message: "Comprehensive backend testing completed successfully. All 15 tests passed including the new auto-generation functionality: AI research endpoints with Perplexity API, stock images management, image upload functionality, PDF export, enhanced slide model with image support, and complete auto-generation of pitch decks with AI content and images. The backend is fully functional and ready for frontend integration. Auto-generation creates production-ready pitch decks with meaningful AI content and professional images. No critical issues found."
