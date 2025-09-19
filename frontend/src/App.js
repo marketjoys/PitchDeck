@@ -817,7 +817,8 @@ const SlideEditor = () => {
               style={{
                 backgroundImage: currentSlide?.background_image ? `url(${currentSlide.background_image})` : 'none',
                 backgroundSize: 'cover',
-                backgroundPosition: 'center'
+                backgroundPosition: 'center',
+                fontFamily: fonts ? fonts.primary : 'Inter'
               }}
             >
               {currentSlide?.background_image && (
@@ -828,17 +829,19 @@ const SlideEditor = () => {
                   <Input
                     value={currentSlide?.title || ''}
                     onChange={(e) => updateSlide(currentSlide.id, { title: e.target.value })}
-                    className={`text-2xl font-bold border-0 p-0 mb-6 bg-transparent ${
+                    className={`${fontSizes?.main || 'text-2xl'} font-bold border-0 p-0 mb-6 bg-transparent ${
                       currentSlide?.background_image ? 'text-white' : 'text-slate-900'
                     }`}
+                    style={{ fontFamily: fonts ? fonts.primary : 'Inter' }}
                     placeholder="Slide title..."
                   />
                   <Textarea
                     value={currentSlide?.content || ''}
                     onChange={(e) => updateSlide(currentSlide.id, { content: e.target.value })}
-                    className={`flex-1 border-0 p-0 resize-none bg-transparent text-lg ${
+                    className={`flex-1 border-0 p-0 resize-none bg-transparent ${fontSizes?.description || 'text-lg'} ${
                       currentSlide?.background_image ? 'text-white placeholder-white/70' : 'text-slate-700'
                     }`}
+                    style={{ fontFamily: fonts ? fonts.secondary : 'Inter' }}
                     placeholder="Add your content here..."
                   />
                   
