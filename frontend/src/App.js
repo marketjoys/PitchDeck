@@ -651,19 +651,49 @@ const SlideEditor = () => {
     }
   };
 
-  const conductResearch = async (type = 'market_analysis') => {
+  const generateAIImage = async () => {
+    if (!imagePrompt.trim()) return;
+    
+    setGeneratingImage(true);
+    try {
+      const response = await axios.post(`${API}/images/generate`, {
+        prompt: imagePrompt,
+        style: imageStyle
+      });
+      
+      if (response.data.success) {
+        const imageUrl = `${BACKEND_URL}${response.data.image_url}`;
+        // Add to current slide as background
+        updateSlide(currentSlide.id, { background_image: imageUrl });
+        setImagePrompt('');
+      }
+    } catch (error) {
+      console.error('Error generating AI image:', error);
+      alert('Failed to generate image. Please try again.');
+    } finally {
+      setGeneratingImage(false);
+    }
+  };
+
+  const conductEnhancedResearch = async (type = 'market-analysis') => {
     if (!researchQuery.trim()) return;
     
     setResearchLoading(true);
     try {
-      const response = await axios.post(`${API}/research/${type}`, {
+      const response = await axios.post(`${API}/research/enhanced-content`, {
         query: researchQuery,
-        industry: "technology", // You can make this dynamic
+        research_type: type,
+        industry: deck?.title?.split(' - ')[0] || "technology",
         max_tokens: 2000
       });
       setResearchResults(response.data);
+      
+      // Auto-set image prompt from research
+      if (response.data.data.image_prompt) {
+        setImagePrompt(response.data.data.image_prompt);
+      }
     } catch (error) {
-      console.error('Error conducting research:', error);
+      console.error('Error conducting enhanced research:', error);
     } finally {
       setResearchLoading(false);
     }
