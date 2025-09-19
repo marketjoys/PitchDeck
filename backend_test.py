@@ -946,9 +946,13 @@ def main():
     
     tester = DeckCraftAPITester()
     
-    # Run all tests
+    # Run all tests - prioritizing new enhanced features
     tests = [
-        tester.test_health_check,
+        tester.test_enhanced_health_check,
+        tester.test_gemini_image_generation,
+        tester.test_font_system,
+        tester.test_enhanced_research,
+        tester.test_enhanced_auto_generation,
         tester.test_get_templates,
         tester.test_create_deck,
         tester.test_get_decks,
