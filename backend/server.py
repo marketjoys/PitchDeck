@@ -124,6 +124,14 @@ class AutoGenerateRequest(BaseModel):
     funding_stage: str = "seed"  # seed, series_a, series_b, etc.
     auto_populate_images: bool = True
 
+class ImageGenerationRequest(BaseModel):
+    prompt: str
+    style: str = "professional"  # professional, creative, minimal, modern
+    
+class FontRequest(BaseModel):
+    topic: str = "business"  # business, tech, creative, startup, finance
+    slide_type: str = "title"  # title, header, content, subtitle
+
 # Perplexity Service
 class PerplexityService:
     def __init__(self):
