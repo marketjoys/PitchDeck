@@ -56,6 +56,8 @@ class Slide(BaseModel):
     title: str
     content: str
     slide_type: str = "text"  # text, image, chart, etc.
+    background_image: Optional[str] = None  # URL or file path
+    images: List[str] = Field(default_factory=list)  # List of image URLs/paths
     layout: Dict[str, Any] = Field(default_factory=dict)
     style: Dict[str, Any] = Field(default_factory=dict)
     order: int = 0
