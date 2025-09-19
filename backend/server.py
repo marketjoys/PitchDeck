@@ -108,6 +108,14 @@ class ExportRequest(BaseModel):
     format: str = "pdf"  # pdf, pptx, html
     include_notes: bool = False
 
+class AutoGenerateRequest(BaseModel):
+    company_name: str
+    industry: str
+    business_description: str = ""
+    target_audience: str = "investors"
+    funding_stage: str = "seed"  # seed, series_a, series_b, etc.
+    auto_populate_images: bool = True
+
 # Perplexity Service
 class PerplexityService:
     def __init__(self):
