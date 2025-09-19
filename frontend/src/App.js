@@ -346,9 +346,13 @@ const SlideEditor = () => {
   const [deck, setDeck] = useState(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [researchPanel, setResearchPanel] = useState(false);
+  const [imagePanel, setImagePanel] = useState(false);
+  const [stockImages, setStockImages] = useState([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [researchQuery, setResearchQuery] = useState('');
   const [researchResults, setResearchResults] = useState(null);
   const [researchLoading, setResearchLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
