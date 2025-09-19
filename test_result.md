@@ -221,7 +221,7 @@ agent_communication:
   - agent: "main"
     message: "Backend completely functional with 14/14 tests passed. All pitch deck functionality implemented: AI research working with new Perplexity key, 10 stock images available, image upload working, PDF export functional, enhanced slide model with image support. Frontend enhanced with comprehensive image management UI and export functionality. Ready for frontend testing."
 
-user_problem_statement: "Test the new pitch deck functionality that was just implemented: AI Research Testing, Image Management Testing, Export Functionality Testing, and Enhanced Slide Model Testing"
+user_problem_statement: "Test the new auto-generation functionality: Auto-Generation API Testing, Content Quality Testing, Performance Testing with realistic EcoTech Solutions data"
 
 backend:
   - task: "AI Research - Perplexity API Integration"
