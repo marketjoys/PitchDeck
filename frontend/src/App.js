@@ -993,19 +993,60 @@ const SlideEditor = () => {
           <SheetHeader>
             <SheetTitle className="flex items-center">
               <ImageIcon className="w-5 h-5 mr-2" />
-              Image Library
+              Image Library & AI Generation
             </SheetTitle>
             <SheetDescription>
-              Add professional images to your slides from our stock library or upload your own
+              Generate custom AI images, use stock images, or upload your own
             </SheetDescription>
           </SheetHeader>
           
           <div className="mt-6 space-y-4">
-            <Tabs defaultValue="stock" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+            <Tabs defaultValue="ai-generate" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="ai-generate">AI Generate</TabsTrigger>
                 <TabsTrigger value="stock">Stock Images</TabsTrigger>
                 <TabsTrigger value="upload">Upload</TabsTrigger>
               </TabsList>
+              
+              <TabsContent value="ai-generate" className="space-y-4">
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">Image Prompt</label>
+                  <Textarea
+                    placeholder="Describe the image you want to generate..."
+                    value={imagePrompt}
+                    onChange={(e) => setImagePrompt(e.target.value)}
+                    rows={3}
+                  />
+                  {researchResults?.data?.image_prompt && (
+                    <div className="text-xs text-slate-600 bg-blue-50 p-2 rounded">
+                      <strong>Suggested from research:</strong> {researchResults.data.image_prompt}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Style</label>
+                  <select 
+                    className="w-full p-2 border rounded-md"
+                    value={imageStyle}
+                    onChange={(e) => setImageStyle(e.target.value)}
+                  >
+                    <option value="professional">Professional</option>
+                    <option value="creative">Creative</option>
+                    <option value="minimal">Minimal</option>
+                    <option value="modern">Modern</option>
+                  </select>
+                </div>
+                
+                <Button 
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  onClick={generateAIImage}
+                  disabled={generatingImage || !imagePrompt.trim()}
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  {generatingImage ? 'Generating...' : 'Generate AI Image'}
+                </Button>
+              </TabsContent>
               
               <TabsContent value="stock" className="space-y-3">
                 <div className="text-sm text-slate-600 mb-4">
