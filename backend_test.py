@@ -2,6 +2,10 @@ import requests
 import sys
 import json
 from datetime import datetime
+try:
+    from PIL import Image
+except ImportError:
+    print("Warning: PIL not available, image upload test may fail")
 
 class DeckCraftAPITester:
     def __init__(self, base_url="https://pitch-readiness.preview.emergentagent.com"):
