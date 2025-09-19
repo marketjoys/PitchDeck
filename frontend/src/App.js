@@ -357,6 +357,7 @@ const SlideEditor = () => {
 
   useEffect(() => {
     fetchDeck();
+    fetchStockImages();
   }, [deckId]);
 
   const fetchDeck = async () => {
