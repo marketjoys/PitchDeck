@@ -967,9 +967,14 @@ async def export_deck_to_pdf(deck_id: str):
 @api_router.get("/health")
 async def health_check():
     return {
-        "status": "healthy",
+        "status": "healthy", 
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "perplexity_api": "connected" if PERPLEXITY_API_KEY else "not_configured"
+        "services": {
+            "perplexity_api": "connected" if PERPLEXITY_API_KEY else "not_configured",
+            "gemini_api": "connected" if GEMINI_API_KEY else "not_configured",
+            "font_system": "active",
+            "enhanced_research": "active"
+        }
     }
 
 # Include the router in the main app
