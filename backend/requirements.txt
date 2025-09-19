@@ -67,5 +67,6 @@ tzdata==2025.2
 urllib3==2.5.0
 uvicorn==0.25.0
 watchfiles==1.1.0
-reportlab==4.2.5
+reportlab
+google-genai==4.2.5
 aiofiles==24.1.0
