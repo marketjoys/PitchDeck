@@ -44,6 +44,10 @@ logger = logging.getLogger(__name__)
 PERPLEXITY_API_KEY = os.environ.get('PERPLEXITY_API_KEY')
 PERPLEXITY_BASE_URL = "https://api.perplexity.ai"
 
+# Google Gemini API Configuration
+GEMINI_API_KEY = "AIzaSyCA3n806Av4FSFkKk46-_yWU_eZMFt4CqI"
+os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
+
 # Models
 class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
