@@ -435,6 +435,355 @@ class DeckCraftAPITester:
             print(f"❌ Failed to test enhanced slide model: {str(e)}")
             return False
 
+    def test_gemini_image_generation(self):
+        """Test Google Gemini AI Image Generation"""
+        test_prompts = [
+            {
+                "prompt": "Professional business meeting in modern conference room",
+                "style": "professional"
+            },
+            {
+                "prompt": "Creative startup office with innovative technology",
+                "style": "creative"
+            },
+            {
+                "prompt": "Clean minimal presentation slide background",
+                "style": "minimal"
+            },
+            {
+                "prompt": "Modern tech company workspace with sleek design",
+                "style": "modern"
+            }
+        ]
+        
+        successful_generations = 0
+        
+        for i, test_data in enumerate(test_prompts):
+            print(f"\n🔍 Testing Gemini Image Generation {i+1}/4...")
+            print(f"   Prompt: {test_data['prompt']}")
+            print(f"   Style: {test_data['style']}")
+            
+            url = f"{self.api_url}/images/generate"
+            self.tests_run += 1
+            
+            try:
+                start_time = datetime.now()
+                response = requests.post(url, json=test_data, headers={'Content-Type': 'application/json'}, timeout=60)
+                end_time = datetime.now()
+                generation_time = (end_time - start_time).total_seconds()
+                
+                success = response.status_code == 200
+                
+                if success:
+                    self.tests_passed += 1
+                    successful_generations += 1
+                    print(f"✅ Passed - Status: {response.status_code}")
+                    print(f"   Generation time: {generation_time:.2f} seconds")
+                    
+                    response_data = response.json()
+                    
+                    if response_data.get('success'):
+                        print(f"   ✅ Success flag: {response_data['success']}")
+                    
+                    if response_data.get('image_url'):
+                        image_url = response_data['image_url']
+                        print(f"   ✅ Image URL generated: {image_url}")
+                        
+                        # Test if image is accessible
+                        full_image_url = f"{self.base_url}{image_url}"
+                        img_response = requests.get(full_image_url, timeout=10)
+                        if img_response.status_code == 200:
+                            print(f"   ✅ Generated image accessible ({len(img_response.content)} bytes)")
+                        else:
+                            print(f"   ❌ Generated image not accessible: {img_response.status_code}")
+                    else:
+                        print(f"   ❌ No image URL in response")
+                    
+                    if response_data.get('prompt_used'):
+                        enhanced_prompt = response_data['prompt_used']
+                        if test_data['style'] in enhanced_prompt.lower():
+                            print(f"   ✅ Style enhancement applied to prompt")
+                        else:
+                            print(f"   ⚠️  Style enhancement may not be applied")
+                        
+                else:
+                    print(f"❌ Failed - Expected 200, got {response.status_code}")
+                    try:
+                        error_data = response.json()
+                        print(f"   Error: {error_data}")
+                    except:
+                        print(f"   Error: {response.text[:200]}")
+                        
+            except requests.exceptions.Timeout:
+                print(f"❌ Failed - Request timeout (60s)")
+            except Exception as e:
+                print(f"❌ Failed - Error: {str(e)}")
+        
+        print(f"\n📊 Gemini Image Generation Summary: {successful_generations}/4 successful")
+        return successful_generations >= 3  # At least 3/4 should work
+
+    def test_font_system(self):
+        """Test Enhanced Font System"""
+        # Test topic-based font recommendations
+        topics = ["business", "tech", "creative", "startup", "finance"]
+        slide_types = ["title", "header", "content", "subtitle"]
+        
+        successful_font_tests = 0
+        total_font_tests = len(topics) + len(slide_types)
+        
+        # Test topic fonts
+        for topic in topics:
+            success, response = self.run_test(
+                f"Get {topic.title()} Topic Fonts",
+                "GET",
+                f"fonts/topic/{topic}",
+                200
+            )
+            
+            if success:
+                successful_font_tests += 1
+                if response.get('fonts'):
+                    fonts = response['fonts']
+                    print(f"   Primary font: {fonts.get('primary', 'Unknown')}")
+                    print(f"   Secondary font: {fonts.get('secondary', 'Unknown')}")
+                    print(f"   Character: {fonts.get('character', 'Unknown')}")
+                    
+                    # Check Google Fonts URL
+                    if response.get('google_fonts_url'):
+                        google_url = response['google_fonts_url']
+                        if 'fonts.googleapis.com' in google_url:
+                            print(f"   ✅ Google Fonts URL generated")
+                        else:
+                            print(f"   ❌ Invalid Google Fonts URL")
+                    else:
+                        print(f"   ❌ No Google Fonts URL")
+        
+        # Test font sizes
+        for slide_type in slide_types:
+            success, response = self.run_test(
+                f"Get {slide_type.title()} Font Sizes",
+                "GET",
+                f"fonts/sizes/{slide_type}",
+                200
+            )
+            
+            if success:
+                successful_font_tests += 1
+                if response.get('sizes'):
+                    sizes = response['sizes']
+                    print(f"   Main size: {sizes.get('main', 'Unknown')}")
+                    print(f"   Subtitle size: {sizes.get('subtitle', 'Unknown')}")
+                    print(f"   Description size: {sizes.get('description', 'Unknown')}")
+        
+        print(f"\n📊 Font System Summary: {successful_font_tests}/{total_font_tests} successful")
+        return successful_font_tests >= (total_font_tests - 1)  # Allow 1 failure
+
+    def test_enhanced_research(self):
+        """Test Citation-Free Enhanced Research"""
+        research_data = {
+            "query": "Market analysis for AI-powered presentation software targeting enterprise clients",
+            "research_type": "market_analysis",
+            "industry": "software",
+            "max_tokens": 1500
+        }
+        
+        success, response = self.run_test(
+            "Enhanced Research with Image Prompts",
+            "POST",
+            "research/enhanced-content",
+            200,
+            data=research_data
+        )
+        
+        if success:
+            data = response.get('data', {})
+            content = data.get('content', '')
+            image_prompt = data.get('image_prompt', '')
+            citations = data.get('citations', [])
+            
+            print(f"   Content length: {len(content)} characters")
+            print(f"   Image prompt length: {len(image_prompt)} characters")
+            print(f"   Citations count: {len(citations)}")
+            
+            # Check if citations are removed
+            citation_patterns = ['[1]', '[2]', '[3]', 'according to sources', 'as reported by']
+            has_citations = any(pattern in content.lower() for pattern in citation_patterns)
+            
+            if not has_citations:
+                print(f"   ✅ Citations successfully removed from content")
+            else:
+                print(f"   ❌ Citations still present in content")
+            
+            # Check if image prompt is generated
+            if image_prompt and len(image_prompt) > 20:
+                print(f"   ✅ Contextual image prompt generated")
+                print(f"   Image prompt: {image_prompt[:100]}...")
+            else:
+                print(f"   ❌ No meaningful image prompt generated")
+            
+            # Check content quality (should still be comprehensive despite citation removal)
+            if len(content) > 500:
+                print(f"   ✅ Content maintains research depth")
+            else:
+                print(f"   ⚠️  Content may be too brief")
+            
+            return not has_citations and len(image_prompt) > 20 and len(content) > 500
+        
+        return False
+
+    def test_enhanced_auto_generation(self):
+        """Test Enhanced Auto-Generation with AI Images"""
+        auto_generate_data = {
+            "company_name": "InnovateTech AI",
+            "industry": "Artificial Intelligence",
+            "business_description": "Advanced machine learning platform for enterprise automation and decision making",
+            "target_audience": "investors",
+            "funding_stage": "series_b",
+            "auto_populate_images": True
+        }
+        
+        print(f"\n🔍 Testing Enhanced Auto-Generation...")
+        print(f"   Company: {auto_generate_data['company_name']}")
+        print(f"   Industry: {auto_generate_data['industry']}")
+        print(f"   Target: {auto_generate_data['target_audience']}")
+        print(f"   Stage: {auto_generate_data['funding_stage']}")
+        
+        url = f"{self.api_url}/decks/auto-generate"
+        self.tests_run += 1
+        
+        try:
+            start_time = datetime.now()
+            response = requests.post(url, json=auto_generate_data, headers={'Content-Type': 'application/json'}, timeout=180)
+            end_time = datetime.now()
+            generation_time = (end_time - start_time).total_seconds()
+            
+            success = response.status_code == 200
+            
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                print(f"   Generation time: {generation_time:.2f} seconds")
+                
+                response_data = response.json()
+                slides = response_data.get('slides', [])
+                
+                # Enhanced validation criteria
+                ai_content_slides = 0
+                ai_image_slides = 0
+                citation_free_slides = 0
+                contextual_slides = 0
+                
+                for slide in slides:
+                    content = slide.get('content', '')
+                    background_image = slide.get('background_image')
+                    
+                    # Check for AI-generated content quality
+                    if len(content) > 100 and 'Please add content' not in content:
+                        ai_content_slides += 1
+                    
+                    # Check for AI-generated images (should be from /api/images/uploads/ for Gemini)
+                    if background_image and '/api/images/uploads/' in background_image:
+                        ai_image_slides += 1
+                        print(f"   ✅ AI-generated image: {slide.get('title')}")
+                    elif background_image:
+                        print(f"   📷 Stock image used: {slide.get('title')}")
+                    
+                    # Check if content is citation-free
+                    citation_patterns = ['[1]', '[2]', '[3]', 'according to sources']
+                    has_citations = any(pattern in content.lower() for pattern in citation_patterns)
+                    if not has_citations:
+                        citation_free_slides += 1
+                    
+                    # Check if content is contextual to company
+                    company_terms = ['InnovateTech AI', 'machine learning', 'AI', 'artificial intelligence']
+                    is_contextual = any(term.lower() in content.lower() for term in company_terms)
+                    if is_contextual:
+                        contextual_slides += 1
+                
+                print(f"\n   📊 Enhanced Auto-Generation Analysis:")
+                print(f"   - AI content quality: {ai_content_slides}/9 slides")
+                print(f"   - AI-generated images: {ai_image_slides}/9 slides")
+                print(f"   - Citation-free content: {citation_free_slides}/9 slides")
+                print(f"   - Contextual content: {contextual_slides}/9 slides")
+                
+                # Success criteria for enhanced version
+                content_quality = ai_content_slides >= 8
+                image_quality = ai_image_slides >= 6  # At least 6 AI images
+                citation_removal = citation_free_slides >= 8
+                contextual_quality = contextual_slides >= 7
+                
+                if content_quality and image_quality and citation_removal and contextual_quality:
+                    print(f"   🎉 Enhanced auto-generation fully successful!")
+                    return True
+                else:
+                    print(f"   ⚠️  Enhanced auto-generation needs improvement:")
+                    if not content_quality:
+                        print(f"     - Content quality: {ai_content_slides}/9")
+                    if not image_quality:
+                        print(f"     - AI image generation: {ai_image_slides}/9")
+                    if not citation_removal:
+                        print(f"     - Citation removal: {citation_free_slides}/9")
+                    if not contextual_quality:
+                        print(f"     - Contextual content: {contextual_slides}/9")
+                    return False
+                    
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Error: {response.text[:500]}")
+                return False
+                
+        except requests.exceptions.Timeout:
+            print(f"❌ Failed - Request timeout (180s)")
+            return False
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            return False
+
+    def test_enhanced_health_check(self):
+        """Test Enhanced Health Check with new services"""
+        success, response = self.run_test(
+            "Enhanced Health Check",
+            "GET",
+            "health",
+            200
+        )
+        
+        if success:
+            services = response.get('services', {})
+            print(f"   Services status:")
+            
+            # Check each service
+            perplexity_status = services.get('perplexity_api', 'unknown')
+            gemini_status = services.get('gemini_api', 'unknown')
+            font_status = services.get('font_system', 'unknown')
+            research_status = services.get('enhanced_research', 'unknown')
+            
+            print(f"   - Perplexity API: {perplexity_status}")
+            print(f"   - Gemini API: {gemini_status}")
+            print(f"   - Font System: {font_status}")
+            print(f"   - Enhanced Research: {research_status}")
+            
+            # All services should be connected/active
+            all_services_ok = (
+                perplexity_status == 'connected' and
+                gemini_status == 'connected' and
+                font_status == 'active' and
+                research_status == 'active'
+            )
+            
+            if all_services_ok:
+                print(f"   ✅ All enhanced services are operational")
+            else:
+                print(f"   ⚠️  Some services may need attention")
+            
+            return all_services_ok
+        
+        return False
+
     def test_auto_generate_deck(self):
         """Test auto-generation functionality with realistic data"""
         auto_generate_data = {
