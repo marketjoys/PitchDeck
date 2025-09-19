@@ -26,7 +26,10 @@ import {
   Image as ImageIcon,
   Zap,
   Brain,
-  Target
+  Target,
+  Sparkles,
+  Wand2,
+  Paintbrush
 } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
