@@ -546,7 +546,11 @@ const SlideEditor = () => {
               <Button variant="outline" size="sm">
                 <Type className="w-4 h-4" />
               </Button>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setImagePanel(true)}
+              >
                 <ImageIcon className="w-4 h-4" />
               </Button>
               <Button variant="outline" size="sm">
