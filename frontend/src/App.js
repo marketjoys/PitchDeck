@@ -35,6 +35,56 @@ import {
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Font Loading Hook
+const useFonts = (topic = 'business') => {
+  const [fonts, setFonts] = useState(null);
+  const [googleFontsUrl, setGoogleFontsUrl] = useState('');
+
+  useEffect(() => {
+    const loadFonts = async () => {
+      try {
+        const response = await axios.get(`${API}/fonts/topic/${topic}`);
+        setFonts(response.data.fonts);
+        setGoogleFontsUrl(response.data.google_fonts_url);
+        
+        // Dynamically load Google Fonts
+        if (response.data.google_fonts_url && !document.querySelector(`link[href="${response.data.google_fonts_url}"]`)) {
+          const link = document.createElement('link');
+          link.href = response.data.google_fonts_url;
+          link.rel = 'stylesheet';
+          document.head.appendChild(link);
+        }
+      } catch (error) {
+        console.error('Error loading fonts:', error);
+      }
+    };
+    
+    loadFonts();
+  }, [topic]);
+
+  return { fonts, googleFontsUrl };
+};
+
+// Font Size Hook
+const useFontSizes = (slideType = 'content') => {
+  const [sizes, setSizes] = useState(null);
+
+  useEffect(() => {
+    const loadSizes = async () => {
+      try {
+        const response = await axios.get(`${API}/fonts/sizes/${slideType}`);
+        setSizes(response.data.sizes);
+      } catch (error) {
+        console.error('Error loading font sizes:', error);
+      }
+    };
+    
+    loadSizes();
+  }, [slideType]);
+
+  return sizes;
+};
+
 // Main Dashboard Component
 const Dashboard = () => {
   const [decks, setDecks] = useState([]);
