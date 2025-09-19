@@ -90,6 +90,24 @@ class PerplexityResponse(BaseModel):
     model: str = "sonar"
     usage: Dict[str, Any] = Field(default_factory=dict)
 
+class StockImage(BaseModel):
+    id: str
+    url: str
+    title: str
+    category: str
+    tags: List[str] = Field(default_factory=list)
+
+class ImageUploadResponse(BaseModel):
+    success: bool
+    image_url: str
+    image_id: str
+    message: str = ""
+
+class ExportRequest(BaseModel):
+    deck_id: str
+    format: str = "pdf"  # pdf, pptx, html
+    include_notes: bool = False
+
 # Perplexity Service
 class PerplexityService:
     def __init__(self):
