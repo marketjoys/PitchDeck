@@ -825,19 +825,25 @@ Write in a professional, confident tone that demonstrates deep market understand
                 ai_image_url = None
                 if request.auto_populate_images:
                     try:
+                        # Try AI image generation first
                         ai_image_url = await gemini_service.generate_image(
                             image_prompt, 
                             f"slide_{template['order']}"
                         )
                         logger.info(f"Generated AI image for slide {template['title']}: {ai_image_url}")
                     except Exception as img_error:
-                        logger.error(f"Failed to generate AI image for {template['title']}: {str(img_error)}")
+                        logger.warning(f"AI image generation failed for {template['title']}: {str(img_error)}")
                         # Fallback to stock images
-                        category_images = [img for img in STOCK_IMAGES if img["category"] == template["image_category"]]
-                        if category_images:
-                            ai_image_url = category_images[0]["url"]
+                        try:
+                            category_images = [img for img in STOCK_IMAGES if img["category"] == template["image_category"]]
+                            if category_images:
+                                ai_image_url = category_images[0]["url"]
+                                logger.info(f"Using stock image fallback for {template['title']}: {ai_image_url}")
+                        except Exception as stock_error:
+                            logger.warning(f"Stock image fallback failed for {template['title']}: {str(stock_error)}")
+                            ai_image_url = None
                 
-                # Create slide with enhanced content and AI-generated image
+                # Create slide with enhanced content and image
                 slide = Slide(
                     title=template["title"],
                     content=content_result.content,
@@ -848,17 +854,20 @@ Write in a professional, confident tone that demonstrates deep market understand
                 )
                 generated_slides.append(slide)
                 
-                # Add delay to avoid rate limiting both APIs
-                await asyncio.sleep(1.0)
+                # Reduced delay for better performance
+                await asyncio.sleep(0.5)
                 
             except Exception as e:
                 logger.error(f"Error generating slide {template['title']}: {str(e)}")
                 # Create a basic slide if generation fails
+                category_images = [img for img in STOCK_IMAGES if img["category"] == template.get("image_category", "business")]
+                fallback_image = category_images[0]["url"] if category_images else None
+                
                 slide = Slide(
                     title=template["title"],
                     content=f"Please add content for {template['title']} slide. Focus on key points relevant to {request.company_name} in the {request.industry} industry.",
                     slide_type="text",
-                    background_image=None,
+                    background_image=fallback_image,
                     order=template["order"]
                 )
                 generated_slides.append(slide)
