@@ -342,8 +342,10 @@ class FontService:
         
         return size_systems.get(slide_type.lower(), size_systems["content"])
 
-# Global Perplexity service instance
+# Global service instances
 perplexity_service = PerplexityService()
+gemini_service = GeminiImageService()
+font_service = FontService()
 
 # Authentication (simple for MVP)
 @api_router.post("/auth/register", response_model=User)
