@@ -527,9 +527,14 @@ const SlideEditor = () => {
             <Brain className="w-4 h-4 mr-2" />
             AI Research
           </Button>
-          <Button variant="outline" className="w-full">
+          <Button 
+            variant="outline" 
+            className="w-full"
+            onClick={exportToPDF}
+            disabled={exportLoading}
+          >
             <Download className="w-4 h-4 mr-2" />
-            Export Deck
+            {exportLoading ? 'Exporting...' : 'Export PDF'}
           </Button>
         </div>
       </div>
