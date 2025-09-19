@@ -612,7 +612,8 @@ def main():
         tester.test_get_stock_images_by_category,
         tester.test_image_upload,
         tester.test_pdf_export,
-        tester.test_enhanced_slide_model
+        tester.test_enhanced_slide_model,
+        tester.test_auto_generate_deck
     ]
     
     for test in tests:
