@@ -886,7 +886,7 @@ const SlideEditor = () => {
               <TabsContent value="market" className="space-y-3">
                 <Button 
                   className="w-full" 
-                  onClick={() => conductResearch('market-analysis')}
+                  onClick={() => conductEnhancedResearch('market-analysis')}
                   disabled={researchLoading}
                 >
                   {researchLoading ? 'Researching...' : 'Analyze Market'}
@@ -896,7 +896,7 @@ const SlideEditor = () => {
               <TabsContent value="competition" className="space-y-3">
                 <Button 
                   className="w-full" 
-                  onClick={() => conductResearch('competitive-analysis')}
+                  onClick={() => conductEnhancedResearch('competitive-analysis')}
                   disabled={researchLoading}
                 >
                   {researchLoading ? 'Analyzing...' : 'Analyze Competition'}
@@ -906,7 +906,7 @@ const SlideEditor = () => {
               <TabsContent value="content" className="space-y-3">
                 <Button 
                   className="w-full" 
-                  onClick={() => conductResearch('content-generation')}
+                  onClick={() => conductEnhancedResearch('content-generation')}
                   disabled={researchLoading}
                 >
                   {researchLoading ? 'Generating...' : 'Generate Content'}
